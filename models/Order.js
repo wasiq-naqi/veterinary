@@ -11,40 +11,20 @@ module.exports = (sequelize, Datatypes) => {
         type: Datatypes.INTEGER(11),
         allowNull: false,
       },
-      patientEmiratesId : {
-        type: Datatypes.STRING(),
-        allowNull: false,
-      },
-      urgent: {
-        type: Datatypes.BOOLEAN,
-        allowNull: false,
-      },
-      sentDate: {
-        type: Datatypes.DATE(),
-        allowNull: true,
-      },
-      returnDate: {
-        type: Datatypes.DATE(),
-        allowNull: true,
-      },
-      notes : {
+      description : {
         type: Datatypes.STRING(500),
         allowNull: true,
       },
-      shadeId:{
-        type: Datatypes.INTEGER(11),
-        allowNull: false,
-      },
-      labId:{
-        type: Datatypes.INTEGER(11),
-        allowNull: false,
-      },
-      parentId:{
-        type: Datatypes.INTEGER(11),
-        allowNull: true,
-      },
-      status:{ // placed - confirmed - completed 
+      appointment:{
         type: Datatypes.STRING(),
+        allowNull: false,
+      },
+      price: {
+        type: Datatypes.INTEGER(11),
+        allowNull: false,
+      },
+      serviceId: {
+        type: Datatypes.INTEGER(11),
         allowNull: false,
       },
       createdBy: {

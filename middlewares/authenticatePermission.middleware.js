@@ -1,4 +1,4 @@
-const { Errors, VerifyToken } = require('../functions');
+const { Errors } = require('../functions');
 // IMPORTING DATABASE
 const DB = require('../models/index');
 
@@ -28,20 +28,6 @@ module.exports = (resourceId, actionId) => {
         if(!AssignedPermission || !AssignedPermission.dataValues.live) return Errors(res, { message: "Permission Denied", status: 403 });
 
         next();
-    
-        // try {
-    
-        //     let bearer = req.headers['authorization'];
-        //     let token = (bearer.split(' '))[1];
-        //     let response = VerifyToken(token);
-        //     next();
-    
-        // } catch(Excp) {
-    
-        //     // If Token not valid
-        //     return Errors(res, { message: "", status: 401 });
-    
-        // }
         
     }
 }

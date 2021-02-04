@@ -15,7 +15,7 @@ const DB = require('../models/index');
 const { GetAll, GetSingle, Create, Update, Delete} = require('./permissions').Actions;
 
 // Resources
-const { Users, Roles, Orders, Services, Patients } = require('./permissions').Resources;
+const { Users, Roles, Orders, Services, Patients, Pets } = require('./permissions').Resources;
 
 // Roles
 const { Administrator, Doctor, Receptionist } = require('./permissions').Roles;
@@ -51,6 +51,13 @@ const permissions = {
             {permission: GetAll, status: true},
         ] },
         { [Patients]: [
+            {permission: Create, status: true},
+            {permission: Update, status: true},
+            {permission: Delete, status: true},
+            {permission: GetSingle, status: true},
+            {permission: GetAll, status: true},
+        ] },
+        { [Pets]: [
             {permission: Create, status: true},
             {permission: Update, status: true},
             {permission: Delete, status: true},
@@ -94,6 +101,13 @@ const permissions = {
             {permission: GetSingle, status: true},
             {permission: GetAll, status: true},
         ] },
+        { [Pets]: [
+            {permission: Create, status: true},
+            {permission: Update, status: true},
+            {permission: Delete, status: true},
+            {permission: GetSingle, status: true},
+            {permission: GetAll, status: true},
+        ] },
     ],
     [Receptionist]: [
         { [Users]: [
@@ -125,6 +139,13 @@ const permissions = {
             {permission: GetAll, status: true},
         ] },
         { [Patients]: [
+            {permission: Create, status: true},
+            {permission: Update, status: true},
+            {permission: Delete, status: true},
+            {permission: GetSingle, status: true},
+            {permission: GetAll, status: true},
+        ] },
+        { [Pets]: [
             {permission: Create, status: true},
             {permission: Update, status: true},
             {permission: Delete, status: true},

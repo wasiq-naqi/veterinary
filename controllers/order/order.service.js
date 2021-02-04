@@ -26,32 +26,43 @@ exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH ) {
 
     }
 
-    // Only retrive orders that is assigned to lab
-    if(_USER.roleId == Roles['Lab']) where['labId'] = _USER.labId; 
-
-    // Only retrive orders that is created by doctor
-    if(_USER.roleId == Roles['Doctor']) where['createdBy'] = _USER.userId; 
-
-    let association = {
-        include: [
-            {
+    let include = [
+        {
             as: 'Patient',
             model: db.Patient, // will create a left join
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-            },
-            {
-                as: 'Invoices',
-                model: db.Invoice, // will create a left join
-                paranoid: false, 
-                required: false,
-                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-                where: {
-                    live: true
-                }
-            },
-    ],
+        },
+        {
+            as: 'Service',
+            model: db.Service, // will create a left join
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        },
+        {
+            as: 'OrderBreakdowns',
+            model: db.OrderBreakdown, // will create a left join
+            paranoid: false, 
+            required: false,
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            where: {
+                live: true
+            }
+        },
+        {
+            as: 'Treatments',
+            model: db.Treatment, // will create a left join
+            paranoid: false, 
+            required: false,
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            where: {
+                live: true
+            }
+        },
+    ]
+
+    let association = {
+        include,
         where,
-        subQuery: false
+        // subQuery: false
     }
 
     let result = await Pagination(_PAGE, _LIMIT, db.Order, association);
@@ -61,19 +72,12 @@ exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH ) {
     };
 }
 
-exports.Get = async function ( _ID, _USER ) {
+exports.Get = async function ( _ID ) {
 
     let where = {
         live: true,
         id: _ID,
     }
-
-    // Only retrive orders that is assigned to lab
-    if(_USER.roleId == Roles['Lab']) where['labId'] = _USER.labId; 
-
-    // Only retrive orders that is created by doctor
-    if(_USER.roleId == Roles['Doctor']) where['createdBy'] = _USER.userId; 
-
 
     let include = [
         {
@@ -82,63 +86,23 @@ exports.Get = async function ( _ID, _USER ) {
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
         },
         {
-            as: 'Shade',
-            model: db.Shade, // will create a left join
+            as: 'Service',
+            model: db.Service, // will create a left join
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
         },
-        { 
-            as: 'tooths', 
-            model: db.OrderTooth, 
-            attributes: ['toothId'], 
+        {
+            as: 'OrderBreakdowns',
+            model: db.OrderBreakdown, // will create a left join
             paranoid: false, 
             required: false,
-            where: { live: true },
-            include: [
-                {
-                    as: 'Tooth',
-                    model: db.Tooth, // will create a left join
-                    attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-                },
-                {
-                    as: 'ToothServices', 
-                    model: db.OrderToothService, 
-                    attributes: ['serviceId'], 
-                    paranoid: false, 
-                    required: false,
-                    include: [
-                        {
-                            as: 'LabService',
-                            model: db.LabService, // will create a left join
-                            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-                            include: [
-                                {
-                                    as: 'Service',
-                                    model: db.Service, // will create a left join
-                                    attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-                                },
-                            ]
-                        },
-                    ]
-                },
-                {
-                    as: 'ToothPonticDesign', 
-                    model: db.OrderToothPonticDesign, 
-                    attributes: ['ponticDesignId'], 
-                    paranoid: false, 
-                    required: false,
-                    include: [
-                        {
-                            as: 'PonticDesign',
-                            model: db.PonticDesign, // will create a left join
-                            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-                        },
-                    ]
-                },
-            ] 
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            where: {
+                live: true
+            }
         },
         {
-            as: 'Invoices',
-            model: db.Invoice, // will create a left join
+            as: 'Treatments',
+            model: db.Treatment, // will create a left join
             paranoid: false, 
             required: false,
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
@@ -149,7 +113,6 @@ exports.Get = async function ( _ID, _USER ) {
     ]
 
     let Order = await db.Order.findOne({
-        attributes: { exclude: ['password'] },
         where,
         include,
     });
@@ -166,33 +129,6 @@ exports.Get = async function ( _ID, _USER ) {
     }
 
     Order = Order.get({ plain: true });
-    // console.log(Order);
-
-    // Setting order structure
-    // for( let i = 0; i < Order['tooths'].length; i++ ){
-
-    //     let tooth = Order['tooths'][i];
-
-    //     let ToothService = tooth['ToothServices'];
-    //     let serviceIds = [];
-
-    //     for( let service of ToothService ){
-    //         serviceIds.push(service['serviceId']);
-    //     }
-    //     Order['tooths'][i]['serviceIds'] = serviceIds;
-    //     delete Order['tooths'][i]['ToothServices'];
-
-    //     let ToothPonticDesign = tooth['ToothPonticDesign'];
-    //     let ponticDesignIds = [];
-    //     for( let ponticDesign of ToothPonticDesign ){
-    //         ponticDesignIds.push(ponticDesign['ponticDesignId']);
-    //     }
-    //     Order['tooths'][i]['ponticDesignIds'] = ponticDesignIds;
-    //     delete Order['tooths'][i]['ToothPonticDesign'];
-
-    // }
-
-    // delete Order.live;
 
     return {
         DB_value: Order
@@ -200,20 +136,20 @@ exports.Get = async function ( _ID, _USER ) {
 
 }
 
-exports.Create = async (_OBJECT) => {
+exports.Create = async ( _OBJECT ) => {
 
-        if( _OBJECT.labId ){
+        if( _OBJECT.patientId ){
 
-            let lab = await db.Lab.findOne({
+            let Patient = await db.Patient.findOne({
                 where: {
-                    id: _OBJECT.labId,
+                    id: _OBJECT.patientId,
                     live: true
                 }
             });
     
-            if(!lab){
+            if(!Patient){
     
-                let error = new Error(`Lab does not exists having id '${_OBJECT.labId}'`);
+                let error = new Error(`Patient does not exists having id '${_OBJECT.patientId}'`);
                 error.status = 400;
                 return {
                     DB_error: error
@@ -223,18 +159,18 @@ exports.Create = async (_OBJECT) => {
 
         }
 
-        if( _OBJECT.shadeId ){
+        if( _OBJECT.serviceId ){
 
-            let Shade = await db.Shade.findOne({
+            let Service = await db.Service.findOne({
                 where: {
-                    id: _OBJECT.shadeId,
+                    id: _OBJECT.serviceId,
                     live: true
                 }
             });
     
-            if(!Shade){
+            if(!Service){
     
-                let error = new Error(`Shade does not exists having id '${_OBJECT.shadeId}'`);
+                let error = new Error(`Service does not exists having id '${_OBJECT.serviceId}'`);
                 error.status = 400;
                 return {
                     DB_error: error
@@ -244,172 +180,31 @@ exports.Create = async (_OBJECT) => {
 
         }
 
-        if( _OBJECT.parentId ){
-
-            let parent = await db.Order.findOne({
-                where: {
-                    id: _OBJECT.parentId,
-                    live: true
-                }
-            });
-    
-            if(!parent){
-    
-                let error = new Error(`Order does not exists having id '${_OBJECT.parentId}'`);
-                error.status = 400;
-                return {
-                    DB_error: error
-                }; 
-    
-            }
-
-        }
-
-        let tooths = _OBJECT.tooths;
-
-        for(let element of tooths){
-
-            let Tooth = await db.Tooth.findOne( {where: {id: element.toothId, live: true } });
-            if(!Tooth){
-                let error = new Error(`Tooth does not exists having id '${element.toothId}'`);
-                error.status = 400;
-                return {
-                    DB_error: error
-                };
-            }
-
-            let services = element.serviceIds;
-            for(let serviceId of services){
-
-                let Service = await db.LabService.findOne( {where: {id: serviceId, live: true } });
-                if(!Service){
-                    let error = new Error(`Service does not exists having id '${serviceId}'`);
-                    error.status = 400;
-                    return {
-                        DB_error: error
-                    };
-                }
-
-            }
-
-            let ponticDesigns = element.ponticDesignIds;
-            for(let ponticDesignId of ponticDesigns){
-
-                let PonticDesign = await db.PonticDesign.findOne( {where: {id: ponticDesignId, live: true } });
-                if(!PonticDesign){
-                    let error = new Error(`Pontic Design does not exists having id '${ponticDesignId}'`);
-                    error.status = 400;
-                    return {
-                        DB_error: error
-                    };
-                }
-
-            }
-
-        }
-        
-        /*
-        **After validating success
-        */
-
-        // Create Patient Object
-        let patientOject = {
-            name: _OBJECT.patientName,
-            gender: _OBJECT.patientGender,
-            contact: _OBJECT.patientContact,
-            createdBy: _OBJECT.createdBy,
-        }
-        let Patient = await db.Patient.create(patientOject);
-        if(!Patient){
-            let error = new Error(`Failed to add patient`);
-            error.status = 500;
-            return {
-                DB_error: error
-            };
-        }
 
         // Creating Order
         let orderObject = {
-            patientEmiratesId: _OBJECT.patientEmiratesId,
-            patientId: Patient.dataValues.id,
-            sentDate: _OBJECT.sendDate,
-            returnDate: _OBJECT.returnDate,
-            urgent: _OBJECT.urgent,
-            notes: _OBJECT.notes,
-            labId: _OBJECT.labId,
-            shadeId: _OBJECT.shadeId,
-            parentId: _OBJECT.parentId,
-            status: 'placed',
+            patientId: _OBJECT.patientId,
+            serviceId: _OBJECT.serviceId,
+            appointment: _OBJECT.appointment,
+            price: _OBJECT.price,
+            description: _OBJECT.description,
             createdBy: _OBJECT.createdBy,
         }
+
         let Order = await db.Order.create(orderObject);
 
-        // Adding Tooths to Orders
-        for(let element of tooths){
+        if(Order){
+            for(let item of _OBJECT['details']){
 
-            let orderTooth = {
-                orderId: Order.dataValues.id,
-                toothId: element.toothId,
-                createdBy: _OBJECT.createdBy,
-            }
-            let Tooth = await db.OrderTooth.create(orderTooth);
-            if(!Tooth){
-                let error = new Error(`Failed to add tooth having id '${element.toothId}' to order`);
-                error.status = 500;
-                return {
-                    DB_error: error
-                };
-            }
-
-            let services = element.serviceIds;
-            for(let serviceId of services){
-
-                let orderToothService = {
-                    orderToothId: Tooth.dataValues.id,
-                    serviceId: serviceId,
-                    charge: element.charge,
+                await db.OrderBreakdown.create({
+                    item: item.item,
+                    price: item.price,
+                    orderId: Order.dataValues.id,
                     createdBy: _OBJECT.createdBy,
-                }
-                let Service = await db.OrderToothService.create(orderToothService);
-                if(!Service){
-                    let error = new Error(`Failed to add service having id '${serviceId}' to order`);
-                    error.status = 500;
-                    return {
-                        DB_error: error
-                    };
-                }
-
+                });
+                
             }
-
-            let ponticDesigns = element.ponticDesignIds;
-            for(let ponticDesignId of ponticDesigns){
-
-                let orderToothPonticDesign = {
-                    orderToothId: Tooth.dataValues.id,
-                    ponticDesignId: ponticDesignId,
-                    createdBy: _OBJECT.createdBy,
-                }
-                let PonticDesign = await db.OrderToothPonticDesign.create(orderToothPonticDesign);
-                if(!PonticDesign){
-                    let error = new Error(`Failed to add pontic design having id '${ponticDesignId}' to order`);
-                    error.status = 500;
-                    return {
-                        DB_error: error
-                    };
-                }
-
-            }
-
         }
-
-        // delete result.dataValues.password;
-        // delete result.dataValues.createdBy;
-        // delete result.dataValues.updatedBy;
-        // delete result.dataValues.updatedAt;
-        // delete result.dataValues.live;
-
-        delete _OBJECT.updatedBy;
-        _OBJECT.id = Order.dataValues.id;
 
         return {
             DB_value: _OBJECT

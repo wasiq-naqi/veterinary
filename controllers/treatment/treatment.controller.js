@@ -1,15 +1,17 @@
 const Joi = require('@hapi/joi');
-const PatientService = require('./patient.service');
+const TreatmentService = require('./treatment.service');
 const { Errors } = require('../../functions');
 
 const Schema = Joi.object({
-    image: Joi.string().allow(null, ''),
-    emiratesId: Joi.string().required(),
-    name: Joi.string().required(),
-    gender: Joi.string().required(),
-    contact: Joi.string().allow('', null),
-    dob: Joi.date().iso().allow('', null),
-    address: Joi.string().allow('', null),
+    orderId: Joi.number().required(),
+    petId: Joi.number().required(),
+    statement: Joi.string().required(),
+    prescription: Joi.string().required(),
+    description: Joi.string().required()
+});
+
+const SchemaTreatmentsByPetsId = Joi.object({
+    petId: Joi.number().required()
 });
 
 exports.GetAll = async (req, res) => {
@@ -18,7 +20,7 @@ exports.GetAll = async (req, res) => {
     let pageSize = req.query.pageSize;
 
 
-    let { DB_error, DB_value } = await PatientService.GetAll(pageNo, pageSize);
+    let { DB_error, DB_value } = await TreatmentService.GetAll(pageNo, pageSize);
 
     if(DB_error){
 
@@ -28,34 +30,6 @@ exports.GetAll = async (req, res) => {
     
     return res.send(DB_value);
 
-}
-
-exports.GetEachAndEvery = async (req, res) => {
-
-
-    let { DB_error, DB_value } = await PatientService.GetEachAndEvery();
-
-    if(DB_error){
-
-        return Errors(res, DB_error);
-
-    }
-
-    return res.send(DB_value);
-}
-
-exports.GetAllActive = async (req, res) => {
-
-
-    let { DB_error, DB_value } = await PatientService.GetAllActive();
-
-    if(DB_error){
-
-        return Errors(res, DB_error);
-
-    }
-
-    return res.send(DB_value);
 }
 
 exports.Get = async (req, res) => {
@@ -66,7 +40,7 @@ exports.Get = async (req, res) => {
         return Errors(res, error);
     }
 
-    let { DB_error, DB_value } = await PatientService.Get(req.params.id);
+    let { DB_error, DB_value } = await TreatmentService.Get(req.params.id);
 
     if(DB_error){
 
@@ -100,7 +74,7 @@ exports.Create = async (req, res) => {
     value.createdBy = req.token.id;
     value.updatedBy = null;
 
-    let { DB_error, DB_value } = await PatientService.Create(value);
+    let { DB_error, DB_value } = await TreatmentService.Create(value);
 
     if(DB_error){
 
@@ -140,7 +114,7 @@ exports.Update = async (req, res) => {
 
     value.updatedBy = req.token.id;
 
-    let { DB_error, DB_value } = await PatientService.Update( value, req.params.id );
+    let { DB_error, DB_value } = await TreatmentService.Update( value, req.params.id );
 
     if(DB_error){
 
@@ -160,7 +134,7 @@ exports.Delete = async (req, res) => {
         return Errors(res, error);
     }
 
-    let { DB_error, DB_value } = await PatientService.Delete(req.params.id);
+    let { DB_error, DB_value } = await TreatmentService.Delete(req.params.id);
 
     if(DB_error){
 
@@ -168,6 +142,31 @@ exports.Delete = async (req, res) => {
 
     }
 
+    return res.send(DB_value);
+
+}
+
+exports.TreatmentsByPetsId = async (req, res) => {
+
+    let pageNo = req.query.pageNo;
+    let pageSize = req.query.pageSize;
+
+    let { value, error } = SchemaTreatmentsByPetsId.validate(req.body);
+
+    if(error){
+
+        let newError = {
+            message: error.details[0].message,
+            status: 400
+        }
+
+        return Errors(res, newError);
+
+    }
+
+    let { DB_error, DB_value } = await TreatmentService.GetTreatmentsByPetsId( value, pageNo, pageSize );
+
+    if(DB_error) return Errors(res, DB_error); 
     return res.send(DB_value);
 
 }

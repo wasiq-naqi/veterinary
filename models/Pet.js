@@ -1,6 +1,6 @@
 
 module.exports = (sequelize, Datatypes) => {
-    return sequelize.define('Patient', {
+    return sequelize.define('Pet', {
       id : {
         type: Datatypes.INTEGER(11),
         allowNull: false,
@@ -11,11 +11,11 @@ module.exports = (sequelize, Datatypes) => {
         type: Datatypes.STRING(500),
         allowNull: true,
       },
-      emiratesId : {
+      name : {
         type: Datatypes.STRING(),
         allowNull: false,
       },
-      name : {
+      description : {
         type: Datatypes.STRING(),
         allowNull: false,
       },
@@ -23,16 +23,12 @@ module.exports = (sequelize, Datatypes) => {
         type: Datatypes.STRING(),
         allowNull: false,
       },
-      contact : {
-        type: Datatypes.STRING(),
-        allowNull: true,
-      },
       dob : {
         type: Datatypes.DATE(),
         allowNull: false,
       },
-      address : {
-        type: Datatypes.STRING(),
+      patientId : {
+        type: Datatypes.INTEGER(11),
         allowNull: false,
       },
       createdBy: {
@@ -49,6 +45,6 @@ module.exports = (sequelize, Datatypes) => {
         defaultValue: true    
       }
     },{ 
-      tableName: 'patients'
+      tableName: 'pets'
     });
 }

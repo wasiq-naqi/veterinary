@@ -1,38 +1,22 @@
 
 module.exports = (sequelize, Datatypes) => {
-    return sequelize.define('Patient', {
+    return sequelize.define('OrderBreakdown', {
       id : {
         type: Datatypes.INTEGER(11),
         allowNull: false,
         autoIncrement: true,
         primaryKey: true
       },
-      image: {
-        type: Datatypes.STRING(500),
-        allowNull: true,
-      },
-      emiratesId : {
-        type: Datatypes.STRING(),
+      orderId:{
+        type: Datatypes.INTEGER(11),
         allowNull: false,
       },
-      name : {
-        type: Datatypes.STRING(),
-        allowNull: false,
-      },
-      gender : {
-        type: Datatypes.STRING(),
-        allowNull: false,
-      },
-      contact : {
+      item : {
         type: Datatypes.STRING(),
         allowNull: true,
       },
-      dob : {
-        type: Datatypes.DATE(),
-        allowNull: false,
-      },
-      address : {
-        type: Datatypes.STRING(),
+      price:{
+        type: Datatypes.INTEGER(11),
         allowNull: false,
       },
       createdBy: {
@@ -48,7 +32,8 @@ module.exports = (sequelize, Datatypes) => {
         allowNull: false,
         defaultValue: true    
       }
-    },{ 
-      tableName: 'patients'
+    }
+    ,{ 
+      tableName: 'order_breakdown'
     });
 }

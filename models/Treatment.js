@@ -1,39 +1,31 @@
 
 module.exports = (sequelize, Datatypes) => {
-    return sequelize.define('Patient', {
+    return sequelize.define('Treatment', {
       id : {
         type: Datatypes.INTEGER(11),
         allowNull: false,
         autoIncrement: true,
         primaryKey: true
       },
-      image: {
-        type: Datatypes.STRING(500),
-        allowNull: true,
-      },
-      emiratesId : {
-        type: Datatypes.STRING(),
+      orderId:{
+        type: Datatypes.INTEGER(11),
         allowNull: false,
       },
-      name : {
-        type: Datatypes.STRING(),
+      petId:{
+        type: Datatypes.INTEGER(11),
         allowNull: false,
       },
-      gender : {
-        type: Datatypes.STRING(),
-        allowNull: false,
-      },
-      contact : {
+      statement:{
         type: Datatypes.STRING(),
         allowNull: true,
       },
-      dob : {
-        type: Datatypes.DATE(),
-        allowNull: false,
-      },
-      address : {
+      prescription:{
         type: Datatypes.STRING(),
-        allowNull: false,
+        allowNull: true,
+      },
+      description:{
+        type: Datatypes.STRING(),
+        allowNull: true,
       },
       createdBy: {
         type: Datatypes.INTEGER(11),
@@ -48,7 +40,8 @@ module.exports = (sequelize, Datatypes) => {
         allowNull: false,
         defaultValue: true    
       }
-    },{ 
-      tableName: 'patients'
+    }
+    ,{ 
+      tableName: 'treatments'
     });
 }

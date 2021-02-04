@@ -2,9 +2,11 @@ module.exports = {
     Resources: {
         Users: 1,
         Roles: 2,
-        Services: 3,
-        Orders: 4,
-        Patients: 5,
+        Patients: 3,
+        Services: 4,
+        Orders: 5,
+        Pets: 6,
+        Treatments: 6,
     },
     Actions: {
         Create: 1,

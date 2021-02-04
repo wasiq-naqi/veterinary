@@ -9,7 +9,7 @@ const basename = path.basename(__filename);
 const dotenv = require('dotenv');
 dotenv.config({path: '../.env'});
 
-const env = process.env.NODE_ENV || 'development';
+// const env = process.env.NODE_ENV || 'development';
 // const config = require(__dirname + '/../config/config.json')[env];
 const db = {};
 
@@ -28,6 +28,7 @@ const sequelize = new Sequelize(process.env.DB_DATABASE, process.env.DB_USER, pr
 
 sequelize.authenticate()
 .then(()=>{ 
+
     console.log('[DATABASE] Connection successfull.');
     
     fs
@@ -49,17 +50,29 @@ sequelize.authenticate()
     // Associations
     db.User.belongsTo(db.Role, {foreignKey: 'role'});
 
+    db.Pet.belongsTo(db.Patient, { foreignKey: 'patientId'});
+    db.Patient.hasMany(db.Pet, { as: 'Pets', foreignKey: 'patientId'});
+
+    db.OrderBreakdown.belongsTo(db.Order, { foreignKey: 'orderId'});
+    db.Order.hasMany(db.OrderBreakdown, { as: 'OrderBreakdowns', foreignKey: 'orderId'});
+    
+    db.Order.belongsTo(db.Service, { foreignKey: 'serviceId'});
+    db.Order.belongsTo(db.Patient, { foreignKey: 'patientId'});
+
+    db.Order.hasMany(db.Treatment, { as: 'Treatments', foreignKey: 'orderId'});
+    db.Treatment.belongsTo(db.Order, { foreignKey: 'orderId'});
+
     // Synchronization
     sequelize.sync()
     .then(() => {
         console.log('[DATABASE] Synchronising successfull');
     })
     .catch((error) => {  
-        console.log('[DATABASE] Synchronising failed\n Error =>');
+        console.log('[DATABASE] Synchronising failed\n Error =>', error);
     });
 
 })
-.catch(( ERROR )=>{ console.log('[DATABASE] Connection failed'); })
+.catch(( error )=>{ console.log('[DATABASE] Connection failed', error); })
 
 
 db.sequelize = sequelize;

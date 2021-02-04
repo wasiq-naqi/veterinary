@@ -3,32 +3,32 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
 
-  return queryInterface.createTable('orders', { 
+  return queryInterface.createTable('treatments', { 
     id : {
       type: Sequelize.INTEGER(11),
       allowNull: false,
       autoIncrement: true,
       primaryKey: true
     },
-    patientId:{
+    orderId:{
       type: Sequelize.INTEGER(11),
       allowNull: false,
     },
-    description : {
-      type: Sequelize.STRING(500),
+    petId:{
+      type: Sequelize.INTEGER(11),
+      allowNull: false,
+    },
+    statement:{
+      type: Sequelize.STRING(),
       allowNull: true,
     },
-    appointment:{
+    prescription:{
       type: Sequelize.STRING(),
-      allowNull: false,
+      allowNull: true,
     },
-    price: {
-      type: Sequelize.INTEGER(11),
-      allowNull: false,
-    },
-    serviceId: {
-      type: Sequelize.INTEGER(11),
-      allowNull: false,
+    description:{
+      type: Sequelize.STRING(),
+      allowNull: true,
     },
     createdBy: {
       type: Sequelize.INTEGER(11),
@@ -46,8 +46,8 @@ module.exports = {
     updatedAt: {
       type: Sequelize.DATE,
       defaultValue: Sequelize.NOW,
-      onUpdate : Sequelize.NOW,
       allowNull: false,
+      onUpdate: Sequelize.NOW
     },
     live: {
       type: Sequelize.BOOLEAN,
@@ -70,7 +70,7 @@ module.exports = {
 
   down: (queryInterface) => {
 
-    return queryInterface.dropTable('orders');
+    return queryInterface.dropTable('treatments');
 
     /*
       Add reverting commands here.

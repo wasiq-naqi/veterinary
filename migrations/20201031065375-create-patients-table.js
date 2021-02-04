@@ -10,6 +10,10 @@ module.exports = {
       autoIncrement: true,
       primaryKey: true
     },
+    image: {
+      type: Sequelize.STRING(500),
+      allowNull: true,
+    },
     emiratesId : {
       type: Sequelize.STRING(),
       allowNull: false,
@@ -52,7 +56,6 @@ module.exports = {
       defaultValue: Sequelize.NOW,
       onUpdate : Sequelize.NOW,
       allowNull: false,
-      onUpdate: Sequelize.NOW
     },
     live: {
       type: Sequelize.BOOLEAN,

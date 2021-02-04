@@ -99,10 +99,10 @@ exports.Update = async (_OBJECT, _ID) => {
     }
 
     if(_OBJECT.image != 'null' && _OBJECT.image != null && _OBJECT.image != ''){
-        Shade.image = _OBJECT.image;
+        Patient.image = _OBJECT.image;
     }
 
-    Patient.emiratesId = _OBJECTemiratesIde;
+    Patient.emiratesId = _OBJECT.emiratesId;
     Patient.name = _OBJECT.name;
     Patient.gender = _OBJECT.gender;
     Patient.contact = _OBJECT.contact;

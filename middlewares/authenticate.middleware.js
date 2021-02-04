@@ -9,7 +9,7 @@ module.exports = (req, res, next) => {
 
         let bearer = req.headers['authorization'];
         let token = (bearer.split(' '))[1];
-        let response = VerifyToken(token);
+        VerifyToken(token);
         next();
 
     } catch(Excp) {

@@ -8,10 +8,6 @@ exports.GetAll = async function ( _PAGE, _LIMIT) {
         where: {
             live: true
         },
-        include: [{
-            model: db.ServiceType, // will create a left join
-            attributes:  [ 'id', 'name', 'description' ] 
-        }]
     }
 
     let result = await Pagination(_PAGE, _LIMIT, db.Service, association);

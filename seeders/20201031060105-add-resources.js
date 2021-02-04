@@ -25,6 +25,17 @@ module.exports = {
         updatedAt: new Date(),
         live: 1
       },
+      // Patient - 3
+      {
+        name: 'Patients',
+        description: 'This is a resource for order management',
+        active: 1,
+        createdBy: 1,
+        createdAt: new Date(),
+        updatedBy: null,
+        updatedAt: new Date(),
+        live: 1
+      },
       {
         name: 'Services',
         description: 'This is a resource for service management',
@@ -46,9 +57,9 @@ module.exports = {
         live: 1
       },
 
-      // Patient - 5 
+      // Pets - 6
       {
-        name: 'Patients',
+        name: 'Pets',
         description: 'This is a resource for order management',
         active: 1,
         createdBy: 1,
@@ -58,6 +69,17 @@ module.exports = {
         live: 1
       },
 
+      // Pets - 7
+      {
+        name: 'Treatments',
+        description: 'This is a resource for order management',
+        active: 1,
+        createdBy: 1,
+        createdAt: new Date(),
+        updatedBy: null,
+        updatedAt: new Date(),
+        live: 1
+      },
 
     ])
   },

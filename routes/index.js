@@ -9,6 +9,8 @@ const role = require('./role.route');
 const service = require('./service.route');
 const OrderRoutes = require('./order.route');
 const patients = require('./patient.route');
+const pets = require('./pet.route');
+const treatments = require('./treatment.route');
 
 // router.get('/', (req, res)=>{
 //     res.send('API Page');
@@ -22,5 +24,7 @@ router.use('/roles', Authenticate, DecodeToken, role);
 router.use('/services', Authenticate, DecodeToken, service);
 router.use('/orders', Authenticate, DecodeToken, OrderRoutes);
 router.use('/patients', Authenticate, DecodeToken, patients);
+router.use('/pets', Authenticate, DecodeToken, pets);
+router.use('/treatments', Authenticate, DecodeToken, treatments);
 
 module.exports = router;

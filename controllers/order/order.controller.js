@@ -2,30 +2,21 @@ const Joi = require('@hapi/joi');
 const Service = require('./order.service');
 const { Errors } = require('../../functions');
 
-let tooth = Joi.object().keys({
-    toothId: Joi.number().required(),
-    charge: Joi.boolean().required(),
-    serviceIds: Joi.array().required().min(1).items(Joi.number()),
-    ponticDesignIds: Joi.array().required().min(1).items(Joi.number())
+let item = Joi.object().keys({
+    item: Joi.string().required(),
+    price: Joi.number().required(),
 });
 
 const Schema = Joi.object({
 
-    patientEmiratesId: Joi.string().required(),
-    patientName: Joi.string().required(),
-    patientGender: Joi.string().required(),
-    patientContact: Joi.string().required().allow(null, ''),
+    patientId: Joi.number().required(),
+    price: Joi.number().required(),
+    appointment: Joi.boolean().required(),
+    description: Joi.string().required(),
+    serviceId: Joi.number().required(),
 
-    sentDate: Joi.date().required().iso().allow(null, ''),
-    returnDate: Joi.date().required().iso().allow(null, ''),
-    notes: Joi.string().required().allow(null, ''),
-    urgent: Joi.boolean().required(),
-    shadeId: Joi.number().required(),
-    labId: Joi.number().required().allow(null, ''),
-    parentId: Joi.number().required().allow(null, ''),
-
-    tooths: Joi.array().required().items(tooth),
-
+    details: Joi.array().required().items(item),
+item
 });
 
 let SchemaStatus = Joi.object({

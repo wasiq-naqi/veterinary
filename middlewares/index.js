@@ -3,4 +3,5 @@ module.exports = {
     Authenticate: require('./authenticate.middleware'),
     AuthenticatePermission: require('./authenticatePermission.middleware'),
     DecodeToken: require('./decodeToken.middleware'),
+    Upload: require('./upload.middleware')
 }

@@ -1,15 +1,18 @@
 const Joi = require('@hapi/joi');
-const PatientService = require('./patient.service');
+const PetService = require('./pet.service');
 const { Errors } = require('../../functions');
 
 const Schema = Joi.object({
     image: Joi.string().allow(null, ''),
-    emiratesId: Joi.string().required(),
     name: Joi.string().required(),
+    description: Joi.string().allow('', null),
     gender: Joi.string().required(),
-    contact: Joi.string().allow('', null),
     dob: Joi.date().iso().allow('', null),
-    address: Joi.string().allow('', null),
+    patientId: Joi.number().required(),
+});
+
+const PatientPetsSchema = Joi.object({
+    patientId: Joi.number().required(),
 });
 
 exports.GetAll = async (req, res) => {
@@ -18,7 +21,7 @@ exports.GetAll = async (req, res) => {
     let pageSize = req.query.pageSize;
 
 
-    let { DB_error, DB_value } = await PatientService.GetAll(pageNo, pageSize);
+    let { DB_error, DB_value } = await PetService.GetAll(pageNo, pageSize);
 
     if(DB_error){
 
@@ -33,7 +36,7 @@ exports.GetAll = async (req, res) => {
 exports.GetEachAndEvery = async (req, res) => {
 
 
-    let { DB_error, DB_value } = await PatientService.GetEachAndEvery();
+    let { DB_error, DB_value } = await PetService.GetEachAndEvery();
 
     if(DB_error){
 
@@ -47,7 +50,7 @@ exports.GetEachAndEvery = async (req, res) => {
 exports.GetAllActive = async (req, res) => {
 
 
-    let { DB_error, DB_value } = await PatientService.GetAllActive();
+    let { DB_error, DB_value } = await PetService.GetAllActive();
 
     if(DB_error){
 
@@ -66,7 +69,7 @@ exports.Get = async (req, res) => {
         return Errors(res, error);
     }
 
-    let { DB_error, DB_value } = await PatientService.Get(req.params.id);
+    let { DB_error, DB_value } = await PetService.Get(req.params.id);
 
     if(DB_error){
 
@@ -100,7 +103,7 @@ exports.Create = async (req, res) => {
     value.createdBy = req.token.id;
     value.updatedBy = null;
 
-    let { DB_error, DB_value } = await PatientService.Create(value);
+    let { DB_error, DB_value } = await PetService.Create(value);
 
     if(DB_error){
 
@@ -140,7 +143,7 @@ exports.Update = async (req, res) => {
 
     value.updatedBy = req.token.id;
 
-    let { DB_error, DB_value } = await PatientService.Update( value, req.params.id );
+    let { DB_error, DB_value } = await PetService.Update( value, req.params.id );
 
     if(DB_error){
 
@@ -160,7 +163,7 @@ exports.Delete = async (req, res) => {
         return Errors(res, error);
     }
 
-    let { DB_error, DB_value } = await PatientService.Delete(req.params.id);
+    let { DB_error, DB_value } = await PetService.Delete(req.params.id);
 
     if(DB_error){
 
@@ -168,6 +171,32 @@ exports.Delete = async (req, res) => {
 
     }
 
+    return res.send(DB_value);
+
+}
+
+
+exports.GetPetsByPatientId = async (req, res) => {
+
+    let pageNo = req.query.pageNo;
+    let pageSize = req.query.pageSize;
+
+    let { value, error } = PatientPetsSchema.validate(req.body);
+
+    if(error){
+
+        let newError = {
+            message: error.details[0].message,
+            status: 400
+        }
+
+        return Errors(res, newError);
+
+    }
+
+    let { DB_error, DB_value } = await PetService.GetPetsByPatientId( value, pageNo, pageSize );
+
+    if(DB_error) return Errors(res, DB_error); 
     return res.send(DB_value);
 
 }
