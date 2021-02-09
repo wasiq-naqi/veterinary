@@ -22,9 +22,13 @@ module.exports = {
       type: Sequelize.STRING(),
       allowNull: false,
     },
+    email : {
+      type: Sequelize.STRING(),
+      allowNull: true,
+    },
     gender : {
       type: Sequelize.STRING(),
-      allowNull: false,
+      allowNull: true,
     },
     contact : {
       type: Sequelize.STRING(),
@@ -36,7 +40,7 @@ module.exports = {
     },
     address : {
       type: Sequelize.STRING(),
-      allowNull: false,
+      allowNull: true,
     },
     createdBy: {
       type: Sequelize.INTEGER(11),

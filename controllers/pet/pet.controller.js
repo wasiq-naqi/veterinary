@@ -5,9 +5,11 @@ const { Errors } = require('../../functions');
 const Schema = Joi.object({
     image: Joi.string().allow(null, ''),
     name: Joi.string().required(),
+    pet: Joi.string().allow('', null),
+    color: Joi.string().allow('', null),
     description: Joi.string().allow('', null),
-    gender: Joi.string().required(),
-    dob: Joi.date().iso().allow('', null),
+    gender: Joi.string().allow('', null),
+    age: Joi.date().allow('', null),
     patientId: Joi.number().required(),
 });
 

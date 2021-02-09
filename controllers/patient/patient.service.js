@@ -1,12 +1,36 @@
 var db = require('../../models');
 const { Pagination } = require('../../functions');
 
-exports.GetAll = async function ( _PAGE, _LIMIT) {
+exports.GetAll = async function ( _PAGE, _LIMIT, _SEARCH) {
+
+    let where = {
+        live: true
+    }
+
+    if(_SEARCH){
+
+        let searchOf = `%${_SEARCH}%`;
+        where[db.Sequelize.Op.or]= [
+            { id: { [db.Sequelize.Op.like]: searchOf } },
+            { emiratesId: { [db.Sequelize.Op.like]: searchOf } },
+            { name: { [db.Sequelize.Op.like]: searchOf } },
+            { email: { [db.Sequelize.Op.like]: searchOf } },
+            { contact: { [db.Sequelize.Op.like]: searchOf } },
+            { gender: { [db.Sequelize.Op.like]: searchOf } },
+            // { name: db.Sequelize.where(db.Sequelize.col('Patient.name'), { [db.Sequelize.Op.like]: searchOf  }) },
+            // { name: db.Sequelize.where(db.Sequelize.col('Patient.gender'), { [db.Sequelize.Op.like]: searchOf  }) },
+            // { name: db.Sequelize.where(db.Sequelize.col('Patient.contact'), { [db.Sequelize.Op.like]: searchOf  }) },
+            // { name: db.Sequelize.where(db.Sequelize.col('Patient.emiratesId'), { [db.Sequelize.Op.like]: searchOf  }) },
+            // { name: db.Sequelize.where(db.Sequelize.col('Patient.address'), { [db.Sequelize.Op.like]: searchOf  }) },
+
+            // { name: db.Sequelize.where(db.Sequelize.col('Service.name'), { [db.Sequelize.Op.like]: searchOf  }) },
+            // { name: db.Sequelize.where(db.Sequelize.col('Service.displayName'), { [db.Sequelize.Op.like]: searchOf  }) },
+        ]
+
+    }
 
     let association = {
-        where: {
-            live: true
-        }
+        where: where
     }
 
     let result = await Pagination(_PAGE, _LIMIT, db.Patient, association);
@@ -104,6 +128,7 @@ exports.Update = async (_OBJECT, _ID) => {
 
     Patient.emiratesId = _OBJECT.emiratesId;
     Patient.name = _OBJECT.name;
+    Patient.email = _OBJECT.email;
     Patient.gender = _OBJECT.gender;
     Patient.contact = _OBJECT.contact;
     Patient.dob = _OBJECT.dob;

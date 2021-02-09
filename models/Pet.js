@@ -15,17 +15,25 @@ module.exports = (sequelize, Datatypes) => {
         type: Datatypes.STRING(),
         allowNull: false,
       },
+      color : {
+        type: Datatypes.STRING(),
+        allowNull: true,
+      },
+      pet : {
+        type: Datatypes.STRING(),
+        allowNull: true,
+      },
       description : {
         type: Datatypes.STRING(),
-        allowNull: false,
+        allowNull: true,
       },
       gender : {
         type: Datatypes.STRING(),
-        allowNull: false,
+        allowNull: true,
       },
-      dob : {
+      age : {
         type: Datatypes.DATE(),
-        allowNull: false,
+        allowNull: true,
       },
       patientId : {
         type: Datatypes.INTEGER(11),

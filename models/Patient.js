@@ -19,9 +19,13 @@ module.exports = (sequelize, Datatypes) => {
         type: Datatypes.STRING(),
         allowNull: false,
       },
+      email : {
+        type: Datatypes.STRING(),
+        allowNull: true,
+      },
       gender : {
         type: Datatypes.STRING(),
-        allowNull: false,
+        allowNull: true,
       },
       contact : {
         type: Datatypes.STRING(),
@@ -29,11 +33,11 @@ module.exports = (sequelize, Datatypes) => {
       },
       dob : {
         type: Datatypes.DATE(),
-        allowNull: false,
+        allowNull: true,
       },
       address : {
         type: Datatypes.STRING(),
-        allowNull: false,
+        allowNull: true,
       },
       createdBy: {
         type: Datatypes.INTEGER(11),

@@ -13,10 +13,11 @@ exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH, _DATE, _AP
         let searchOf = `%${_SEARCH}%`;
         where[db.Sequelize.Op.or]= [
             { id: { [db.Sequelize.Op.like]: searchOf } },
-            { patientEmiratesId: { [db.Sequelize.Op.like]: searchOf } },
+            // { patientEmiratesId: { [db.Sequelize.Op.like]: searchOf } },
             { description: { [db.Sequelize.Op.like]: searchOf } },
             { appointment: { [db.Sequelize.Op.like]: searchOf } },
             { price: { [db.Sequelize.Op.like]: searchOf } },
+
             { name: db.Sequelize.where(db.Sequelize.col('Patient.name'), { [db.Sequelize.Op.like]: searchOf  }) },
             { name: db.Sequelize.where(db.Sequelize.col('Patient.gender'), { [db.Sequelize.Op.like]: searchOf  }) },
             { name: db.Sequelize.where(db.Sequelize.col('Patient.contact'), { [db.Sequelize.Op.like]: searchOf  }) },
@@ -51,45 +52,43 @@ exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH, _DATE, _AP
     }
 
     let include = [
-        // {
-        //     as: 'Patient',
-        //     model: db.Patient, // will create a left join
-        //     attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-        // },
-        // {
-        //     as: 'Service',
-        //     model: db.Service, // will create a left join
-        //     attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-        // },
-        // {
-        //     as: 'OrderBreakdowns',
-        //     model: db.OrderBreakdown, // will create a left join
-        //     paranoid: false, 
-        //     required: false,
-        //     attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-        //     where: {
-        //         live: true
-        //     }
-        // },
-        // {
-        //     as: 'Treatments',
-        //     model: db.Treatment, // will create a left join
-        //     paranoid: false, 
-        //     required: false,
-        //     attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-        //     where: {
-        //         live: true
-        //     }
-        // },
+        {
+            as: 'Patient',
+            model: db.Patient, // will create a left join
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        },
+        {
+            as: 'Service',
+            model: db.Service, // will create a left join
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        },
+        {
+            as: 'OrderBreakdowns',
+            model: db.OrderBreakdown, // will create a left join
+            paranoid: false, 
+            required: false,
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            where: {
+                live: true
+            }
+        },
+        {
+            as: 'Treatments',
+            model: db.Treatment, // will create a left join
+            paranoid: false, 
+            required: false,
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            where: {
+                live: true
+            }
+        },
     ]
 
     let association = {
         include,
         where,
-        // subQuery: false
+        subQuery: false
     }
-
-    console.log('Assosiation', where);
 
     let result = await Pagination(_PAGE, _LIMIT, db.Order, association);
 

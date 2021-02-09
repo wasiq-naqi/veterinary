@@ -140,6 +140,9 @@ exports.Update = async (_OBJECT, _ID) => {
     }
 
     Pet.name = _OBJECT.name;
+    Pet.color = _OBJECT.color;
+    Pet.pet = _OBJECT.pet;
+    Pet.age = _OBJECT.age;
     Pet.gender = _OBJECT.gender;
     Pet.dob = _OBJECT.dob;
     Pet.patientId = _OBJECT.patientId;

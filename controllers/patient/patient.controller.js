@@ -6,7 +6,8 @@ const Schema = Joi.object({
     image: Joi.string().allow(null, ''),
     emiratesId: Joi.string().required(),
     name: Joi.string().required(),
-    gender: Joi.string().required(),
+    email: Joi.string().allow('', null),
+    gender: Joi.string().allow('', null),
     contact: Joi.string().allow('', null),
     dob: Joi.date().iso().allow('', null),
     address: Joi.string().allow('', null),
@@ -14,11 +15,9 @@ const Schema = Joi.object({
 
 exports.GetAll = async (req, res) => {
 
-    let pageNo = req.query.pageNo;
-    let pageSize = req.query.pageSize;
-
-
-    let { DB_error, DB_value } = await PatientService.GetAll(pageNo, pageSize);
+    let { pageNo, pageSize, search, date, appointment } = req.query;
+    
+    let { DB_error, DB_value } = await PatientService.GetAll(pageNo, pageSize, search);
 
     if(DB_error){
 

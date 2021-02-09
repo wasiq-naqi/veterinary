@@ -18,17 +18,25 @@ module.exports = {
       type: Sequelize.STRING(),
       allowNull: false,
     },
+    color : {
+      type: Sequelize.STRING(),
+      allowNull: true,
+    },
+    pet : {
+      type: Sequelize.STRING(),
+      allowNull: true,
+    },
     description : {
       type: Sequelize.STRING(),
       allowNull: true,
     },
     gender : {
       type: Sequelize.STRING(),
-      allowNull: false,
+      allowNull: true,
     },
-    dob : {
+    age : {
       type: Sequelize.DATE(),
-      allowNull: false,
+      allowNull: true,
     },
     patientId : {
       type: Sequelize.INTEGER(11),
