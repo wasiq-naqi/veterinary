@@ -3,7 +3,8 @@ const RoleService = require('./role.service');
 const { Errors } = require('../../functions');
 
 const Schema = Joi.object({
-    title: Joi.string().required(),
+    name: Joi.string().required(),
+    displayName: Joi.string().required(),
     active: Joi.boolean().required(),
     description: Joi.string().allow('', null)
 });
@@ -15,7 +16,7 @@ exports.GetAll = async (req, res, next) => {
     let pageSize = req.query.pageSize;
 
 
-    let { DB_error, DB_value } = await RoleService.GetAll(pageNo, pageSize);
+    let { DB_error, DB_value } = await RoleService.GetAll(pageNo, pageSize, req.token);
 
     if(DB_error){
 
@@ -29,7 +30,7 @@ exports.GetAll = async (req, res, next) => {
 exports.GetEachAndEvery = async (req, res, next) => {
 
 
-    let { DB_error, DB_value } = await RoleService.GetEachAndEvery();
+    let { DB_error, DB_value } = await RoleService.GetEachAndEvery( req.token );
 
     if(DB_error){
 
@@ -43,7 +44,7 @@ exports.GetEachAndEvery = async (req, res, next) => {
 exports.GetAllActive = async (req, res, next) => {
 
 
-    let { DB_error, DB_value } = await RoleService.GetAllActive();
+    let { DB_error, DB_value } = await RoleService.GetAllActive( req.token );
 
     if(DB_error){
 
@@ -62,7 +63,7 @@ exports.Get = async (req, res, next) => {
         return Errors(res, error);
     }
 
-    let { DB_error, DB_value } = await RoleService.Get(req.params.id);
+    let { DB_error, DB_value } = await RoleService.Get(req.params.id, req.token);
 
     if(DB_error){
 
@@ -130,7 +131,7 @@ exports.Update = async (req, res, next) => {
 
     value.updatedBy = req.token.id;
 
-    let { DB_error, DB_value } = await RoleService.Update( value, req.params.id );
+    let { DB_error, DB_value } = await RoleService.Update( value, req.params.id, req.token );
 
     if(DB_error){
 
@@ -150,7 +151,7 @@ exports.Delete = async (req, res, next) => {
         return Errors(res, error);
     }
 
-    let { DB_error, DB_value } = await RoleService.Delete(req.params.id);
+    let { DB_error, DB_value } = await RoleService.Delete(req.params.id, req.token);
 
     if(DB_error){
 
@@ -160,8 +161,4 @@ exports.Delete = async (req, res, next) => {
 
     return res.send(DB_value);
 
-}
-
-exports.CreatePermissions = async (req, res, next) => {
-    
 }

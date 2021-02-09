@@ -18,9 +18,53 @@ const { GetAll, GetSingle, Create, Update, Delete} = require('./permissions').Ac
 const { Users, Roles, Orders, Services, Patients, Pets } = require('./permissions').Resources;
 
 // Roles
-const { Administrator, Doctor, Receptionist } = require('./permissions').Roles;
+const { Superman, Administrator, Doctor, Receptionist } = require('./permissions').Roles;
 
 const permissions = {
+    [Superman]: [
+        { [Users]: [
+            {permission: Create, status: true},
+            {permission: Update, status: true},
+            {permission: Delete, status: true},
+            {permission: GetSingle, status: true},
+            {permission: GetAll, status: true},
+        ] },
+        { [Roles]: [
+            {permission: Create, status: true},
+            {permission: Update, status: true},
+            {permission: Delete, status: true},
+            {permission: GetSingle, status: true},
+            {permission: GetAll, status: true},
+        ] },
+        { [Services]: [
+            {permission: Create, status: true},
+            {permission: Update, status: true},
+            {permission: Delete, status: true},
+            {permission: GetSingle, status: true},
+            {permission: GetAll, status: true},
+        ] },
+        { [Orders]: [
+            {permission: Create, status: true},
+            {permission: Update, status: true},
+            {permission: Delete, status: true},
+            {permission: GetSingle, status: true},
+            {permission: GetAll, status: true},
+        ] },
+        { [Patients]: [
+            {permission: Create, status: true},
+            {permission: Update, status: true},
+            {permission: Delete, status: true},
+            {permission: GetSingle, status: true},
+            {permission: GetAll, status: true},
+        ] },
+        { [Pets]: [
+            {permission: Create, status: true},
+            {permission: Update, status: true},
+            {permission: Delete, status: true},
+            {permission: GetSingle, status: true},
+            {permission: GetAll, status: true},
+        ] },
+    ],
     [Administrator]: [
         { [Users]: [
             {permission: Create, status: true},

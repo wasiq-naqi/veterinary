@@ -2,7 +2,7 @@ var db = require('../../models');
 const { Pagination } = require('../../functions');
 const { Roles } = require('../../utils/permissions');
 
-exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH ) {
+exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH, _DATE, _APPOINTMENT ) {
     
     let where = {
         live: true
@@ -14,49 +14,73 @@ exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH ) {
         where[db.Sequelize.Op.or]= [
             { id: { [db.Sequelize.Op.like]: searchOf } },
             { patientEmiratesId: { [db.Sequelize.Op.like]: searchOf } },
-            { urgent: { [db.Sequelize.Op.like]: searchOf } },
-            { notes: { [db.Sequelize.Op.like]: searchOf } },
-            { status: { [db.Sequelize.Op.like]: searchOf } },
-            { shadeId: { [db.Sequelize.Op.like]: searchOf } },
-            { labId: { [db.Sequelize.Op.like]: searchOf } },
+            { description: { [db.Sequelize.Op.like]: searchOf } },
+            { appointment: { [db.Sequelize.Op.like]: searchOf } },
+            { price: { [db.Sequelize.Op.like]: searchOf } },
             { name: db.Sequelize.where(db.Sequelize.col('Patient.name'), { [db.Sequelize.Op.like]: searchOf  }) },
             { name: db.Sequelize.where(db.Sequelize.col('Patient.gender'), { [db.Sequelize.Op.like]: searchOf  }) },
             { name: db.Sequelize.where(db.Sequelize.col('Patient.contact'), { [db.Sequelize.Op.like]: searchOf  }) },
+            { name: db.Sequelize.where(db.Sequelize.col('Patient.emiratesId'), { [db.Sequelize.Op.like]: searchOf  }) },
+            { name: db.Sequelize.where(db.Sequelize.col('Patient.address'), { [db.Sequelize.Op.like]: searchOf  }) },
+
+            { name: db.Sequelize.where(db.Sequelize.col('Service.name'), { [db.Sequelize.Op.like]: searchOf  }) },
+            { name: db.Sequelize.where(db.Sequelize.col('Service.displayName'), { [db.Sequelize.Op.like]: searchOf  }) },
         ]
 
     }
 
+    if(_DATE){
+
+        let searchOf = `${_DATE}`;
+        // where[db.Sequelize.Op.and]= [
+        //     { 
+        //         createdAt: searchOf 
+        //     },
+        // ]
+        where[db.Sequelize.Op.and] = sequelize.where(sequelize.fn('date', sequelize.col('createdAt')), searchOf);
+    }
+
+    if(_APPOINTMENT){
+
+        let searchOf = `${_APPOINTMENT}`;
+        where[db.Sequelize.Op.and]= [
+            { 
+                appointment: searchOf 
+            },
+        ]
+    }
+
     let include = [
-        {
-            as: 'Patient',
-            model: db.Patient, // will create a left join
-            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-        },
-        {
-            as: 'Service',
-            model: db.Service, // will create a left join
-            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-        },
-        {
-            as: 'OrderBreakdowns',
-            model: db.OrderBreakdown, // will create a left join
-            paranoid: false, 
-            required: false,
-            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-            where: {
-                live: true
-            }
-        },
-        {
-            as: 'Treatments',
-            model: db.Treatment, // will create a left join
-            paranoid: false, 
-            required: false,
-            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-            where: {
-                live: true
-            }
-        },
+        // {
+        //     as: 'Patient',
+        //     model: db.Patient, // will create a left join
+        //     attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        // },
+        // {
+        //     as: 'Service',
+        //     model: db.Service, // will create a left join
+        //     attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        // },
+        // {
+        //     as: 'OrderBreakdowns',
+        //     model: db.OrderBreakdown, // will create a left join
+        //     paranoid: false, 
+        //     required: false,
+        //     attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        //     where: {
+        //         live: true
+        //     }
+        // },
+        // {
+        //     as: 'Treatments',
+        //     model: db.Treatment, // will create a left join
+        //     paranoid: false, 
+        //     required: false,
+        //     attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        //     where: {
+        //         live: true
+        //     }
+        // },
     ]
 
     let association = {
@@ -64,6 +88,8 @@ exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH ) {
         where,
         // subQuery: false
     }
+
+    console.log('Assosiation', where);
 
     let result = await Pagination(_PAGE, _LIMIT, db.Order, association);
 
@@ -222,9 +248,6 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
             id: _ID,
             live: true
         }
-
-        // Only retrive orders that is created by doctor
-        if(_USER.roleId == Roles['Doctor']) where['createdBy'] = _USER.userId; 
         
         Order = await db.Order.findOne({
             where

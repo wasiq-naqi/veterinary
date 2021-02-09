@@ -2,9 +2,6 @@ const Joi = require('@hapi/joi');
 const UserService = require('./user.service');
 const { Errors, GenerateHash } = require('../../functions');
 
-const superman = process.env.SUPERMAN;
-const supermanId = process.env.SUPERMAN_ID;
-
 const Schema = Joi.object({
     image: Joi.string().allow(null, ''),
     emiratesId: Joi.string().required(),
@@ -13,7 +10,6 @@ const Schema = Joi.object({
     username: Joi.string().required(),
     contact: Joi.string().allow(null, ''),
     role: Joi.number().required(),
-    labId: Joi.number().required().allow(null, ''),
     remarks: Joi.string().allow(null, ''),
     active: Joi.boolean().required(),
 });
@@ -24,7 +20,7 @@ exports.GetAll = async (req, res, next) => {
     let pageNo = req.query.pageNo;
     let pageSize = req.query.pageSize;
 
-    let { DB_error, DB_value } = await UserService.getAllUsers(pageNo, pageSize);
+    let { DB_error, DB_value } = await UserService.getAllUsers(pageNo, pageSize, req.token);
 
     if(DB_error){
 
@@ -43,15 +39,15 @@ exports.Get = async (req, res, next) => {
         return Errors(res, error);
     }
 
-    if( superman ){
-        if( req.params.id == supermanId && req.token.id != supermanId ){
-            let error = new Error('User not found!');
-            error.status = 404;
-            return Errors(res, error);
-        }
-    }
+    // if( superman ){
+    //     if( req.params.id == supermanId && req.token.id != supermanId ){
+    //         let error = new Error('User not found!');
+    //         error.status = 404;
+    //         return Errors(res, error);
+    //     }
+    // }
 
-    let { DB_error, DB_value } = await UserService.Get(req.params.id);
+    let { DB_error, DB_value } = await UserService.Get(req.params.id, req.token);
 
     if(DB_error){
 
@@ -132,7 +128,7 @@ exports.Update = async (req, res, next) => {
 
     value.updatedBy = req.token.id;
 
-    let { DB_error, DB_value } = await UserService.Update( value, req.params.id );
+    let { DB_error, DB_value } = await UserService.Update( value, req.params.id, req.token );
 
     if(DB_error){
 
@@ -155,7 +151,7 @@ exports.Delete = async (req, res, next) => {
     let value = {};
     value.updatedBy = req.token.id;
 
-    let { DB_error, DB_value } = await UserService.Delete( value, req.params.id );
+    let { DB_error, DB_value } = await UserService.Delete( value, req.params.id, req.token );
 
     if(DB_error){
 

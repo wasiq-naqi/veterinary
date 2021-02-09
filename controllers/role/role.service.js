@@ -2,13 +2,15 @@ var db = require('../../models');
 const { Pagination } = require('../../functions');
 const { Roles } = require('../../utils/permissions');
 
-exports.GetAll = async function ( _PAGE, _LIMIT) {
+exports.GetAll = async function ( _PAGE, _LIMIT, _Token) {
 
     let where = {
         live: true,
-        id: { [db.Sequelize.Op.ne]: Roles['SuperAdmin'] }
     }
-    // where['id'] = { [db.Sequelize.Op.ne]: Roles['SuperAdmin'] };
+    
+    if(_Token.role.id != Roles['Superman']){
+        where['id'] = { [db.Sequelize.Op.ne]: Roles['Superman'] }
+    }
 
     let association = {
         where
@@ -21,12 +23,15 @@ exports.GetAll = async function ( _PAGE, _LIMIT) {
     };
 }
 
-exports.GetEachAndEvery = async function () {
+exports.GetEachAndEvery = async function ( _Token) {
     
     let where = { 
         live: true,
-        id: { [db.Sequelize.Op.ne]: Roles['SuperAdmin'] }
     };
+
+    if(_Token.role.id != Roles['Superman']){
+        where['id'] = { [db.Sequelize.Op.ne]: Roles['Superman'] }
+    }
 
     let Role = await db.Role.findAll({
         attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
@@ -41,13 +46,16 @@ exports.GetEachAndEvery = async function () {
     };
 }
 
-exports.GetAllActive = async function () {
+exports.GetAllActive = async function ( _Token) {
     
     let where = { 
         live: true,
         active: true,
-        id: { [db.Sequelize.Op.ne]: Roles['SuperAdmin'] }
     };
+
+    if(_Token.role.id != Roles['Superman']){
+        where['id'] = { [db.Sequelize.Op.ne]: Roles['Superman'] }
+    }
 
     let Role = await db.Role.findAll({
         attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
@@ -62,13 +70,18 @@ exports.GetAllActive = async function () {
     };
 }
 
-exports.Get = async function ( _ID ) {
+exports.Get = async function ( _ID, _Token ) {
 
     let where = { 
         live: true,
-        id: _ID,
-        id: { [db.Sequelize.Op.ne]: Roles['SuperAdmin'] }
+        id: {
+            [db.Sequelize.Op.eq]: _ID
+        }
     };
+
+    if(_Token.role.id != Roles['Superman']){
+        where['id'][db.Sequelize.Op.ne] = Roles['Superman']
+    }
 
     let Role = await db.Role.findOne({
         attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
@@ -108,14 +121,22 @@ exports.Create = async (_OBJECT) => {
     
 }
 
-exports.Update = async (_OBJECT, _ID) => {
+exports.Update = async (_OBJECT, _ID, _Token) => {
+
+    let where = { 
+        live: true,
+        id: {
+            [db.Sequelize.Op.eq]: _ID
+        }
+    };
+
+    if(_Token.role.id != Roles['Superman']){
+        where['id'][db.Sequelize.Op.ne] = Roles['Superman']
+    }
 
     let Role = await db.Role.findOne({
         attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-        where: {
-            id: _ID,
-            live: true
-        }
+        where
     });
 
 
@@ -130,8 +151,9 @@ exports.Update = async (_OBJECT, _ID) => {
     }
 
 
-    Role.title = _OBJECT.title;
-    Role.sequence = _OBJECT.sequence;
+    Role.name = _OBJECT.name;
+    Role.displayName = _OBJECT.displayName;
+    // Role.sequence = _OBJECT.sequence;
     Role.description = _OBJECT.description;
     Role.active = _OBJECT.active;
     Role.updatedBy = _OBJECT.updatedBy;
@@ -150,13 +172,18 @@ exports.Update = async (_OBJECT, _ID) => {
 
 }
 
-exports.Delete = async ( _ID ) => {
+exports.Delete = async ( _ID, _Token ) => {
 
     let where = { 
         live: true,
-        id: _ID,
-        id: { [db.Sequelize.Op.ne]: Roles['SuperAdmin'] }
+        id: {
+            [db.Sequelize.Op.eq]: _ID
+        }
     };
+
+    if(_Token.role.id != Roles['Superman']){
+        where['id'][db.Sequelize.Op.ne] = Roles['Superman']
+    }
 
     let Role = await db.Role.findOne({
         where,

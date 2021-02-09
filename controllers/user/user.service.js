@@ -1,22 +1,19 @@
 var db = require('../../models');
 const { Pagination } = require('../../functions');
 const { Roles } = require('../../utils/permissions');
+
 const superman = process.env.SUPERMAN;
 const supermanId = process.env.SUPERMAN_ID;
 
-exports.getAllUsers = async function ( _PAGE, _LIMIT) {
+exports.getAllUsers = async function ( _PAGE, _LIMIT, _Token) {
     
     let where = {
         live: true
     }
 
-    if(superman){
-        where['id'] = { [db.Sequelize.Op.ne]: supermanId }
+    if(_Token.role.id != Roles['Superman']){
+        where['role'] = { [db.Sequelize.Op.ne]: Roles['Superman'] }
     }
-
-    where['role'] = { [db.Sequelize.Op.ne]: Roles['SuperAdmin'] };
-
-    console.log(where);
 
     let association = {
         include: [{
@@ -33,11 +30,17 @@ exports.getAllUsers = async function ( _PAGE, _LIMIT) {
     };
 }
 
-exports.Get = async function ( _ID ) {
+exports.Get = async function ( _ID, _Token ) {
 
-    let where = {
+    let where = { 
         live: true,
-        id: _ID,
+        id: {
+            [db.Sequelize.Op.eq]: _ID
+        }
+    };
+
+    if(_Token.role.id != Roles['Superman']){
+        where['id'][db.Sequelize.Op.ne] = Roles['Superman']
     }
 
     let User = await db.User.findOne({
@@ -169,15 +172,17 @@ exports.Create = async (_OBJECT) => {
     
 }
 
-exports.Update = async (_OBJECT, _ID) => {
+exports.Update = async (_OBJECT, _ID, _Token) => {
 
-    let where = {
+    let where = { 
         live: true,
-        id: _ID,
-    }
+        id: {
+            [db.Sequelize.Op.eq]: _ID
+        }
+    };
 
-    if(superman){
-        where['id'] = { [db.Sequelize.Op.ne]: 1 }
+    if(_Token.role.id != Roles['Superman']){
+        where['id'][db.Sequelize.Op.ne] = Roles['Superman']
     }
 
     let User = await db.User.findOne({
@@ -318,16 +323,18 @@ exports.Update = async (_OBJECT, _ID) => {
 
 }
 
-exports.Delete = async function ( _OBJECT, _ID ) {
+exports.Delete = async function ( _OBJECT, _ID, _Token ) {
 
-    let where = {
+    let where = { 
         live: true,
-        id: _ID,
-    }
+        id: {
+            [db.Sequelize.Op.eq]: _ID
+        }
+    };
 
-    // if(superman){
-    //     where['id'] = { [db.Sequelize.Op.ne]: 1 }
-    // }
+    if(_Token.role.id != Roles['Superman']){
+        where['id'][db.Sequelize.Op.ne] = Roles['Superman']
+    }
 
     let User = await db.User.findOne({
         attributes: { exclude: ['password'] },

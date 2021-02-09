@@ -32,9 +32,12 @@ let SchemaGetOrderStatus = Joi.object({
 exports.GetAll = async (req, res, next) => {
     
 
-    let { pageNo, pageSize, search } = req.query;
+    let { pageNo, pageSize, search, date, appointment } = req.query;
 
-    let { DB_error, DB_value } = await Service.getAllUsers(pageNo, pageSize, {userId: req.token.id, roleId: req.token.role.id, labId: req.token.labId}, search);
+    let { DB_error, DB_value } = await Service.getAllUsers(
+        pageNo, pageSize, 
+        {userId: req.token.id, roleId: req.token.role.id, labId: req.token.labId}, 
+        search, date, appointment);
 
     if(DB_error){
 
