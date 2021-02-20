@@ -7,7 +7,9 @@ const Schema = Joi.object({
     petId: Joi.number().required(),
     statement: Joi.string().required(),
     prescription: Joi.string().required(),
-    description: Joi.string().required()
+    description: Joi.string().allow('', null),
+    recomendation: Joi.string().allow('', null),
+    followUp: Joi.number().allow('', null)
 });
 
 const SchemaTreatmentsByPetsId = Joi.object({

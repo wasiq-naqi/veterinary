@@ -14,6 +14,11 @@ const Schema = Joi.object({
     active: Joi.boolean().required(),
 });
 
+const schemaPassword = Joi.object({
+    password: Joi.string().required(),
+    confirmPassword: Joi.ref('password'),
+});
+
 exports.GetAll = async (req, res, next) => {
     
 
@@ -160,5 +165,55 @@ exports.Delete = async (req, res, next) => {
     }
 
     return res.send(DB_value);
+
+}
+
+exports.updatePassword = async (req, res, next) => {
+        
+
+    if( isNaN(req.params.id) ){
+        let error = new Error('ID must be a number');
+        error.status = 400;
+        return Errors(res, error);
+    }
+
+    // Verify if not super admin or admin
+    if(req.token.role.id != 1 && req.token.role.id != 2 ){
+
+        console.log(req.token.role);
+
+        if( req.params.id != req.token.id ){
+            let error = new Error('Permission Denied');
+            error.status = 403;
+            return Errors(res, error);
+        }
+    }
+
+    let {error, value} = schemaPassword.validate(req.body);
+
+    if(error){
+
+        let newError = {
+            message: error.details[0].message,
+            status: 400
+        }
+
+        return Errors(res, newError);
+
+    }
+
+    value.password = await GenerateHash(value.password);
+    value.updatedBy = req.token.id;
+
+    let { DB_error, DB_value } = await UserService.UpdatePassword(value, req.params.id);
+
+    if(DB_error){
+
+        return Errors(res, DB_error);
+
+    }
+    
+
+    return res.status(201).send(DB_value);
 
 }

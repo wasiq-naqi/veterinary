@@ -3,10 +3,31 @@ const { Pagination } = require('../../functions');
 
 exports.GetAll = async function ( _PAGE, _LIMIT) {
 
+    let include = [
+        {
+            as: 'Order',
+            model: db.Order, // will create a left join
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            include: [
+                {
+                    as: 'Patient',
+                    model: db.Patient, // will create a left join
+                    attributes: { exclude: ['createdAt', 'createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                }
+            ]
+        },
+        {
+            as: 'Pet',
+            model: db.Pet,
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        }
+    ];
+
     let association = {
         where: {
             live: true
-        }
+        },
+        include
     }
 
     let result = await Pagination(_PAGE, _LIMIT, db.Treatment, association);
@@ -19,8 +40,28 @@ exports.GetAll = async function ( _PAGE, _LIMIT) {
 
 exports.Get = async function ( _ID ) {
 
+    let include = [
+        {
+            as: 'Order',
+            model: db.Order, // will create a left join
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            include: [
+                {
+                    as: 'Patient',
+                    model: db.Patient, // will create a left join
+                    attributes: { exclude: ['createdAt', 'createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                }
+            ]
+        },
+        {
+            as: 'Pet',
+            model: db.Pet,
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        }
+    ];
     let Treatment = await db.Treatment.findOne({
         attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        include,
         where: {
             id: _ID,
             live: true
@@ -156,13 +197,35 @@ exports.Update = async (_OBJECT, _ID) => {
 
     }
 
-    Treatment.petId = _OBJECT.petId;
-    Treatment.statement = _OBJECT.statement;
-    Treatment.prescription = _OBJECT.prescription;
-    Treatment.description = _OBJECT.description;
-    Treatment.updatedBy = _OBJECT.updatedBy;
+    let Save = await db.Treatment.Update(_OBJECT,{
+        where: {
+            id: _ID
+        }
+    })
 
-    let result = await Treatment.save();
+    if(!Save){
+        console.log(Save);
+        let error = new Error("Failed to update!");
+        error.status = 500;
+        return {
+            DB_error: error
+        };
+    }
+    // Treatment.petId = _OBJECT.petId;
+    // Treatment.statement = _OBJECT.statement;
+    // Treatment.prescription = _OBJECT.prescription;
+    // Treatment.description = _OBJECT.description;
+    // Treatment.updatedBy = _OBJECT.updatedBy;
+
+
+
+    let result = await db.Treatment.findOne({
+        attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        where: {
+            id: _ID,
+            live: true
+        }
+    });
 
     delete result.dataValues.createdBy;
     delete result.dataValues.updatedBy;

@@ -27,6 +27,14 @@ module.exports = (sequelize, Datatypes) => {
         type: Datatypes.STRING(),
         allowNull: true,
       },
+      recomendation:{
+        type: Datatypes.STRING(),
+        allowNull: true,
+      },
+      followUp:{
+        type: Datatypes.INTEGER(),
+        allowNull: true,
+      },
       createdBy: {
         type: Datatypes.INTEGER(11),
         allowNull: true,

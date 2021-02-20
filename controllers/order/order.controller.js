@@ -5,18 +5,18 @@ const { Errors } = require('../../functions');
 let item = Joi.object().keys({
     item: Joi.string().required(),
     price: Joi.number().required(),
+    serviceId: Joi.number().required(),
 });
 
 const Schema = Joi.object({
 
     patientId: Joi.number().required(),
-    price: Joi.number().required(),
+    // price: Joi.number().required(),
     appointment: Joi.boolean().required(),
     description: Joi.string().required(),
-    serviceId: Joi.number().required(),
-
+    // serviceId: Joi.number().required(),
     details: Joi.array().required().items(item),
-item
+
 });
 
 let SchemaStatus = Joi.object({
@@ -36,7 +36,7 @@ exports.GetAll = async (req, res, next) => {
 
     let { DB_error, DB_value } = await Service.getAllUsers(
         pageNo, pageSize, 
-        {userId: req.token.id, roleId: req.token.role.id, labId: req.token.labId}, 
+        {userId: req.token.id, roleId: req.token.role.id}, 
         search, date, appointment);
 
     if(DB_error){
@@ -72,38 +72,26 @@ exports.Get = async (req, res, next) => {
 exports.Create = async (req, res, next) => {
 
 
-        let {error, value} = Schema.validate(req.body);
+    let {error, value} = Schema.validate(req.body);
 
-        if(error){
+    if(error){
 
-            let newError = {
-                message: error.details[0].message,
-                status: 400
-            }
-
-            return Errors(res, newError);
-
+        let newError = {
+            message: error.details[0].message,
+            status: 400
         }
 
-        value.createdBy = req.token.id;
-        value.updatedBy = null;
+        return Errors(res, newError);
 
-        let { DB_error, DB_value } = await Service.Create(value);
+    }
 
-        if(DB_error){
+    value.createdBy = req.token.id;
+    value.updatedBy = null;
 
-            return Errors(res, DB_error);
+    let { DB_error, DB_value } = await Service.Create(value);
 
-        }
-        
-
-        return res.status(201).send(DB_value);
-        // return res.status(201).send(
-        //     {
-        //         "success": true,
-        //         object: value
-        //     }
-        // );
+    if(DB_error)return Errors(res, DB_error);
+    return res.status(201).send(DB_value);
 
 }
 

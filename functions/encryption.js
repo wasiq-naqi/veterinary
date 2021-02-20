@@ -24,7 +24,7 @@ module.exports = {
             image: object.image,
             role: {
                 id: object.Role.dataValues.id,
-                name: object.Role.dataValues.title
+                name: object.Role.dataValues.name
             },
             labId: object.labId
         };

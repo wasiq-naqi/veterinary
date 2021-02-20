@@ -26,10 +26,6 @@ module.exports = {
       type: Sequelize.INTEGER(11),
       allowNull: false,
     },
-    serviceId: {
-      type: Sequelize.INTEGER(11),
-      allowNull: false,
-    },
     createdBy: {
       type: Sequelize.INTEGER(11),
       allowNull: true,

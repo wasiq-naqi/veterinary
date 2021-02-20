@@ -30,6 +30,14 @@ module.exports = {
       type: Sequelize.STRING(),
       allowNull: true,
     },
+    recomendation:{
+      type: Sequelize.STRING(),
+      allowNull: true,
+    },
+    followUp:{
+      type: Sequelize.INTEGER(),
+      allowNull: true,
+    },
     createdBy: {
       type: Sequelize.INTEGER(11),
       allowNull: true,

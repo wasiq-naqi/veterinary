@@ -24,8 +24,8 @@ exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH, _DATE, _AP
             { name: db.Sequelize.where(db.Sequelize.col('Patient.emiratesId'), { [db.Sequelize.Op.like]: searchOf  }) },
             { name: db.Sequelize.where(db.Sequelize.col('Patient.address'), { [db.Sequelize.Op.like]: searchOf  }) },
 
-            { name: db.Sequelize.where(db.Sequelize.col('Service.name'), { [db.Sequelize.Op.like]: searchOf  }) },
-            { name: db.Sequelize.where(db.Sequelize.col('Service.displayName'), { [db.Sequelize.Op.like]: searchOf  }) },
+            // { name: db.Sequelize.where(db.Sequelize.col('Service.name'), { [db.Sequelize.Op.like]: searchOf  }) },
+            // { name: db.Sequelize.where(db.Sequelize.col('Service.displayName'), { [db.Sequelize.Op.like]: searchOf  }) },
         ]
 
     }
@@ -33,33 +33,24 @@ exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH, _DATE, _AP
     if(_DATE){
 
         let searchOf = `${_DATE}`;
-        // where[db.Sequelize.Op.and]= [
-        //     { 
-        //         createdAt: searchOf 
-        //     },
-        // ]
-        where[db.Sequelize.Op.and] = sequelize.where(sequelize.fn('date', sequelize.col('createdAt')), searchOf);
+        if(!where.hasOwnProperty(db.Sequelize.Op.and)) where[db.Sequelize.Op.and] = [];
+        // where[db.Sequelize.Op.and] = db.Sequelize.where(db.Sequelize.fn('date', db.Sequelize.col('Order.createdAt')), searchOf);
+        where[db.Sequelize.Op.and].push(db.Sequelize.where(db.Sequelize.fn('date', db.Sequelize.col('Order.createdAt')), searchOf));
     }
 
     if(_APPOINTMENT){
 
         let searchOf = `${_APPOINTMENT}`;
-        where[db.Sequelize.Op.and]= [
-            { 
-                appointment: searchOf 
-            },
-        ]
+
+        if(!where.hasOwnProperty(db.Sequelize.Op.and)) where[db.Sequelize.Op.and] = [];
+        where[db.Sequelize.Op.and].push({ appointment: searchOf });
+        
     }
 
     let include = [
         {
             as: 'Patient',
             model: db.Patient, // will create a left join
-            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-        },
-        {
-            as: 'Service',
-            model: db.Service, // will create a left join
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
         },
         {
@@ -78,6 +69,18 @@ exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH, _DATE, _AP
             paranoid: false, 
             required: false,
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            include: [
+                {
+                    as: 'Pet',
+                    model: db.Pet,
+                    attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                },
+                {
+                    as: 'Doctor',
+                    model: db.User,
+                    attributes: ['id', 'image', 'name'],
+                }
+            ],
             where: {
                 live: true
             }
@@ -87,7 +90,48 @@ exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH, _DATE, _AP
     let association = {
         include,
         where,
-        subQuery: false
+        subQuery: false,
+        distinct: true,
+        attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] }
+    };
+
+    // Restrict doctor from getting order details
+    if(_USER.roleId == Roles['Doctor']){
+        association.include = [
+            {
+                as: 'Patient',
+                model: db.Patient, // will create a left join
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            },
+            {
+                as: 'Treatments',
+                model: db.Treatment, // will create a left join
+                paranoid: false, 
+                required: false,
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                include: [
+                    {
+                        as: 'Pet',
+                        model: db.Pet,
+                        attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                    },
+                    {
+                        as: 'Doctor',
+                        model: db.User,
+                        attributes: ['id', 'image', 'name'],
+                    }
+                ],
+                where: {
+                    live: true
+                }
+            },
+        ]
+
+        // get only where appointments are true
+        association.where['appointment'] = true;
+
+        // Remove Price
+        association['attributes'] = { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live', 'price'] };
     }
 
     let result = await Pagination(_PAGE, _LIMIT, db.Order, association);
@@ -97,7 +141,9 @@ exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH, _DATE, _AP
     };
 }
 
-exports.Get = async function ( _ID ) {
+exports.Get = async function ( _ID, _USER ) {
+
+    let attributes = { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] };
 
     let where = {
         live: true,
@@ -111,11 +157,6 @@ exports.Get = async function ( _ID ) {
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
         },
         {
-            as: 'Service',
-            model: db.Service, // will create a left join
-            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-        },
-        {
             as: 'OrderBreakdowns',
             model: db.OrderBreakdown, // will create a left join
             paranoid: false, 
@@ -131,15 +172,62 @@ exports.Get = async function ( _ID ) {
             paranoid: false, 
             required: false,
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            include: [
+                {
+                    as: 'Doctor',
+                    model: db.User,
+                    attributes: ['id', 'image', 'name'],
+                }
+            ],
             where: {
                 live: true
             }
         },
     ]
 
+    // Restrict doctor from getting order details
+    if(_USER.roleId == Roles['Doctor']){
+        include = [
+            {
+                as: 'Patient',
+                model: db.Patient, // will create a left join
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            },
+            {
+                as: 'Treatments',
+                model: db.Treatment, // will create a left join
+                paranoid: false, 
+                required: false,
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                include: [
+                    {
+                        as: 'Pet',
+                        model: db.Pet,
+                        attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                    },
+                    {
+                        as: 'Doctor',
+                        model: db.User,
+                        attributes: ['id', 'image', 'name'],
+                    }
+                ],
+                where: {
+                    live: true
+                }
+            },
+        ]
+
+        // get only where appointments are true
+        where['appointment'] = true;
+
+        // Remove Price
+        attributes = { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live', 'price'] };
+    }
+
     let Order = await db.Order.findOne({
         where,
         include,
+        attributes
     });
 
 
@@ -163,84 +251,93 @@ exports.Get = async function ( _ID ) {
 
 exports.Create = async ( _OBJECT ) => {
 
-        if( _OBJECT.patientId ){
+    let orderPrice = 0;
 
-            let Patient = await db.Patient.findOne({
-                where: {
-                    id: _OBJECT.patientId,
-                    live: true
-                }
+    if( _OBJECT.patientId ){
+
+        let Patient = await db.Patient.findOne({
+            where: {
+                id: _OBJECT.patientId,
+                live: true
+            }
+        });
+
+        if(!Patient){
+
+            let error = new Error(`Patient does not exists having id '${_OBJECT.patientId}'`);
+            error.status = 400;
+            return {
+                DB_error: error
+            }; 
+
+        }
+
+    }
+
+    // Validating services
+    for(let item of _OBJECT['details']){
+
+        let Service = await db.Service.findOne({
+            where: {
+                id: item.serviceId,
+                live: true
+            }
+        });
+
+        if(!Service){
+
+            let error = new Error(`Service does not exists having id '${item.serviceId}'`);
+            error.status = 400;
+            return {
+                DB_error: error
+            }; 
+
+        }
+
+        orderPrice += +item.price;
+        
+    }
+
+    // Creating Order
+    let orderObject = {
+        patientId: _OBJECT.patientId,
+        appointment: _OBJECT.appointment,
+        // Appending the calculated price
+        price: orderPrice,
+        description: _OBJECT.description,
+        createdBy: _OBJECT.createdBy,
+    }
+
+    let Order = await db.Order.create(orderObject);
+
+    if(Order){
+        for(let item of _OBJECT['details']){
+
+            await db.OrderBreakdown.create({
+                item: item.item,
+                price: item.price,
+                serviceId: item.serviceId,
+                orderId: Order.dataValues.id,
+                createdBy: _OBJECT.createdBy,
             });
-    
-            if(!Patient){
-    
-                let error = new Error(`Patient does not exists having id '${_OBJECT.patientId}'`);
-                error.status = 400;
-                return {
-                    DB_error: error
-                }; 
-    
-            }
-
+            
         }
+    }
 
-        if( _OBJECT.serviceId ){
+    _OBJECT.id = Order.dataValues.id;
+    _OBJECT.price = orderPrice;
+    _OBJECT.createdAt = Order.dataValues.createdAt;
 
-            let Service = await db.Service.findOne({
-                where: {
-                    id: _OBJECT.serviceId,
-                    live: true
-                }
-            });
-    
-            if(!Service){
-    
-                let error = new Error(`Service does not exists having id '${_OBJECT.serviceId}'`);
-                error.status = 400;
-                return {
-                    DB_error: error
-                }; 
-    
-            }
-
-        }
-
-
-        // Creating Order
-        let orderObject = {
-            patientId: _OBJECT.patientId,
-            serviceId: _OBJECT.serviceId,
-            appointment: _OBJECT.appointment,
-            price: _OBJECT.price,
-            description: _OBJECT.description,
-            createdBy: _OBJECT.createdBy,
-        }
-
-        let Order = await db.Order.create(orderObject);
-
-        if(Order){
-            for(let item of _OBJECT['details']){
-
-                await db.OrderBreakdown.create({
-                    item: item.item,
-                    price: item.price,
-                    orderId: Order.dataValues.id,
-                    createdBy: _OBJECT.createdBy,
-                });
-                
-            }
-        }
-
-        return {
-            DB_value: _OBJECT
-        };
+    return {
+        DB_value: _OBJECT
+    };
     
     
 }
 
 exports.Update = async (_OBJECT, _ID, condition = {}) => {
 
-    let Order = null;
+    let Order = null, orderPrice = 0;
     if( _ID ){
 
         let where = {
@@ -285,19 +382,23 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
         }
 
     }
+    
+    orderPrice = Order.dataValues.price;
+    console.log('Prices', orderPrice ,Order.dataValues.price);
 
-    if( _OBJECT.labId ){
+    // Validating services
+    for(let item of _OBJECT['details']){
 
-        let lab = await db.Lab.findOne({
+        let Service = await db.Service.findOne({
             where: {
-                id: _OBJECT.labId,
+                id: item.serviceId,
                 live: true
             }
         });
 
-        if(!lab){
+        if(!Service){
 
-            let error = new Error(`Lab does not exists having id '${_OBJECT.labId}'`);
+            let error = new Error(`Service does not exists having id '${item.serviceId}'`);
             error.status = 400;
             return {
                 DB_error: error
@@ -305,191 +406,90 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
 
         }
 
+        orderPrice += +item.price;
+        
     }
 
-    if( _OBJECT.shadeId ){
-
-        let Shade = await db.Shade.findOne({
-            where: {
-                id: _OBJECT.shadeId,
-                live: true
-            }
-        });
-
-        if(!Shade){
-
-            let error = new Error(`Shade does not exists having id '${_OBJECT.shadeId}'`);
-            error.status = 400;
-            return {
-                DB_error: error
-            }; 
-
-        }
-
-    }
-
-    if( _OBJECT.parentId ){
-
-        let parent = await db.Order.findOne({
-            where: {
-                id: _OBJECT.parentId,
-                live: true
-            }
-        });
-
-        if(!parent){
-
-            let error = new Error(`Order does not exists having id '${_OBJECT.parentId}'`);
-            error.status = 400;
-            return {
-                DB_error: error
-            }; 
-
-        }
-
-    }
-
-    let tooths = _OBJECT.tooths;
-
-    for(let element of tooths){
-
-        let Tooth = await db.Tooth.findOne( {where: {id: element.toothId, live: true } });
-        if(!Tooth){
-            let error = new Error(`Tooth does not exists having id '${element.toothId}'`);
-            error.status = 400;
-            return {
-                DB_error: error
-            };
-        }
-
-        let services = element.serviceIds;
-        for(let serviceId of services){
-
-            let Service = await db.Service.findOne( {where: {id: serviceId, live: true } });
-            if(!Service){
-                let error = new Error(`Service does not exists having id '${serviceId}'`);
-                error.status = 400;
-                return {
-                    DB_error: error
-                };
-            }
-
-        }
-
-        let ponticDesigns = element.ponticDesignIds;
-        for(let ponticDesignId of ponticDesigns){
-
-            let PonticDesign = await db.PonticDesign.findOne( {where: {id: ponticDesignId, live: true } });
-            if(!PonticDesign){
-                let error = new Error(`Pontic Design does not exists having id '${ponticDesignId}'`);
-                error.status = 400;
-                return {
-                    DB_error: error
-                };
-            }
-
-        }
-
-    }
+    // Soft deleting previos service items
+    // await db.OrderBreakdown.update({ live: false }, { where: { orderId: _ID } });
     
     /*
     **After validating success
     */
 
-    await db.OrderTooth.update({ live: false }, { where: { orderId: _ID } });
-
-    /*
-    **After removing current associations
-    */
-
-    // Create Patient Object
-    // let patientOject = {
-    //     name: _OBJECT.patientName,
-    //     gender: _OBJECT.patientGender,
-    //     contact: _OBJECT.patientContact,
-    //     createdBy: _OBJECT.createdBy,
-    // }
-    Patient.name = _OBJECT.patientName;
-    Patient.gender = _OBJECT.patientGender;
-    Patient.contact = _OBJECT.patientContact;
-    Patient.updatedBy = _OBJECT.updatedBy;
-    await Patient.save();
-
-    // Creating Order
-    Order.patientEmiratesId = _OBJECT.patientEmiratesId;
-    Order.patientId = _OBJECT.patientId;
-    Order.sentDate = _OBJECT.sendDate;
-    Order.returnDate = _OBJECT.returnDate;
-    Order.urgent = _OBJECT.urgent;
-    Order.notes = _OBJECT.notes;
-    Order.labId = _OBJECT.labId;
-    Order.shadeId = _OBJECT.shadeId;
-    Order.parentId = _OBJECT.parentId;
-    Order.updatedBy = _OBJECT.updatedBy;
+    Order.patientId = _OBJECT.patientId,
+    Order.appointment = _OBJECT.appointment,
+    // Appending the calculated price
+    Order.price = orderPrice,
+    Order.description = _OBJECT.description,
+    Order.updatedBy = _OBJECT.updatedBy,
 
     await Order.save();
 
-    // Adding Tooths to Orders
-    for(let element of tooths){
+    if(Order){
+        for(let item of _OBJECT['details']){
 
-        let orderTooth = {
-            orderId: _ID,
-            toothId: element.toothId,
-            createdBy: _OBJECT.createdBy,
+            await db.OrderBreakdown.create({
+                item: item.item,
+                price: item.price,
+                serviceId: item.serviceId,
+                orderId: _ID,
+                updatedBy: _OBJECT.updatedBy,
+            });
+            
         }
-        let Tooth = await db.OrderTooth.create(orderTooth);
-        if(!Tooth){
-            let error = new Error(`Failed to add tooth having id '${element.toothId}' to order`);
-            error.status = 500;
-            return {
-                DB_error: error
-            };
-        }
-
-        let services = element.serviceIds;
-        for(let serviceId of services){
-
-            let orderToothService = {
-                orderToothId: Tooth.dataValues.id,
-                serviceId: serviceId,
-                createdBy: _OBJECT.createdBy,
-            }
-            let Service = await db.OrderToothService.create(orderToothService);
-            if(!Service){
-                let error = new Error(`Failed to add service having id '${serviceId}' to order`);
-                error.status = 500;
-                return {
-                    DB_error: error
-                };
-            }
-
-        }
-
-        let ponticDesigns = element.ponticDesignIds;
-        for(let ponticDesignId of ponticDesigns){
-
-            let orderToothPonticDesign = {
-                orderToothId: Tooth.dataValues.id,
-                ponticDesignId: ponticDesignId,
-                createdBy: _OBJECT.createdBy,
-            }
-            let PonticDesign = await db.OrderToothPonticDesign.create(orderToothPonticDesign);
-            if(!PonticDesign){
-                let error = new Error(`Failed to add pontic design having id '${ponticDesignId}' to order`);
-                error.status = 500;
-                return {
-                    DB_error: error
-                };
-            }
-
-        }
-
     }
 
-    delete _OBJECT.updatedBy;
+    let attributes = { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] };
+
+    let where = {
+        live: true,
+        id: _ID,
+    }
+
+    let include = [
+        {
+            as: 'Patient',
+            model: db.Patient, // will create a left join
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        },
+        {
+            as: 'OrderBreakdowns',
+            model: db.OrderBreakdown, // will create a left join
+            paranoid: false, 
+            required: false,
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            where: {
+                live: true
+            }
+        },
+        {
+            as: 'Treatments',
+            model: db.Treatment, // will create a left join
+            paranoid: false, 
+            required: false,
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            include: [
+                {
+                    as: 'Doctor',
+                    model: db.User,
+                    attributes: ['id', 'image', 'name'],
+                }
+            ],
+            where: {
+                live: true
+            }
+        },
+    ]
+
+    Order = await db.Order.findOne({
+        where,
+        include,
+        attributes
+    });
 
     return {
-        DB_value: _OBJECT
+        DB_value: Order
     };
 
 

@@ -23,10 +23,6 @@ module.exports = (sequelize, Datatypes) => {
         type: Datatypes.INTEGER(11),
         allowNull: false,
       },
-      serviceId: {
-        type: Datatypes.INTEGER(11),
-        allowNull: false,
-      },
       createdBy: {
         type: Datatypes.INTEGER(11),
         allowNull: true,

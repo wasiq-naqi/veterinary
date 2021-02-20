@@ -14,6 +14,10 @@ module.exports = {
       type: Sequelize.INTEGER(11),
       allowNull: false,
     },
+    serviceId:{
+      type: Sequelize.INTEGER(11),
+      allowNull: false,
+    },
     item : {
       type: Sequelize.STRING(),
       allowNull: true,

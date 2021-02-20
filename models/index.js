@@ -49,6 +49,7 @@ sequelize.authenticate()
 
     // Associations
     db.User.belongsTo(db.Role, {foreignKey: 'role'});
+    
 
     db.Pet.belongsTo(db.Patient, { foreignKey: 'patientId'});
     db.Patient.hasMany(db.Pet, { as: 'Pets', foreignKey: 'patientId'});
@@ -56,11 +57,14 @@ sequelize.authenticate()
     db.OrderBreakdown.belongsTo(db.Order, { foreignKey: 'orderId'});
     db.Order.hasMany(db.OrderBreakdown, { as: 'OrderBreakdowns', foreignKey: 'orderId'});
     
-    db.Order.belongsTo(db.Service, { foreignKey: 'serviceId'});
+    // db.Order.belongsTo(db.Service, { foreignKey: 'serviceId'});
     db.Order.belongsTo(db.Patient, { foreignKey: 'patientId'});
 
     db.Order.hasMany(db.Treatment, { as: 'Treatments', foreignKey: 'orderId'});
+
     db.Treatment.belongsTo(db.Order, { foreignKey: 'orderId'});
+    db.Treatment.belongsTo(db.User, { as: 'Doctor', foreignKey: 'createdBy'});
+    db.Treatment.belongsTo(db.Pet, { as: 'Pet', foreignKey: 'petId'});
 
     // Synchronization
     sequelize.sync()
