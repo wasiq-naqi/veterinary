@@ -221,3 +221,55 @@ exports.GetOrderStatus = async (req, res, next) => {
     return res.status(201).send(DB_value);
 
 }
+
+exports.GetOrdersByPatient = async (req, res, next) => {
+    
+    if( isNaN(req.params.id) ){
+        let error = new Error('ID must be a number');
+        error.status = 400;
+        return Errors(res, error);
+    }
+
+    let { search, date, appointment } = req.query;
+
+    let { DB_error, DB_value } = await Service.getOrdersByPatient(
+        req.params.id, 
+        {userId: req.token.id, roleId: req.token.role.id, labId: req.token.labId},
+        date, appointment
+        );
+
+    if(DB_error){
+
+        return Errors(res, DB_error);
+
+    }
+
+    return res.send(DB_value);
+
+}
+
+exports.GetOrdersByPet = async (req, res, next) => {
+    
+    if( isNaN(req.params.id) ){
+        let error = new Error('ID must be a number');
+        error.status = 400;
+        return Errors(res, error);
+    }
+
+    let { date, appointment } = req.query;
+
+    let { DB_error, DB_value } = await Service.getOrdersByPet(
+        req.params.id, 
+        {userId: req.token.id, roleId: req.token.role.id, labId: req.token.labId},
+        date, appointment
+        );
+
+    if(DB_error){
+
+        return Errors(res, DB_error);
+
+    }
+
+    return res.send(DB_value);
+
+}

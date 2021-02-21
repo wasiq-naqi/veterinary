@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { GetAll, Get, Create, Update, Delete, UpdateStatus, GetOrderStatus} = require('../controllers/order/order.controller');
+const { GetAll, Get, Create, Update, Delete, UpdateStatus, GetOrdersByPatient, GetOrdersByPet} = require('../controllers/order/order.controller');
 const { HandleNullString, AuthenticatePermission } = require('../middlewares');
 const { Resources, Actions } = require('../utils/permissions');
 
@@ -8,8 +8,8 @@ router.route('/')
 .get(AuthenticatePermission(Resources['Orders'], Actions['GetAll']),GetAll)                // GET ALL Orders
 .post(AuthenticatePermission(Resources['Orders'], Actions['Create']), HandleNullString, Create)               // CREATE USER
 
-router.route('/status')
-.post(AuthenticatePermission(Resources['Orders'], Actions['GetAll']), GetOrderStatus)                // GET ALL Orders
+// router.route('/status')
+// .post(AuthenticatePermission(Resources['Orders'], Actions['GetAll']), GetOrderStatus)                // GET ALL Orders
 
 router.route('/:id')
 .get(AuthenticatePermission(Resources['Orders'], Actions['GetSingle']),Get)                   // GET USER AGAINST ID
@@ -18,5 +18,11 @@ router.route('/:id')
 
 router.route('/:id/status')
 .put(AuthenticatePermission(Resources['Orders'], Actions['Update']), UpdateStatus)
+
+router.route('/patient/:id')
+.get(AuthenticatePermission(Resources['Orders'], Actions['GetAll']), GetOrdersByPatient)
+
+router.route('/pet/:id')
+.get(AuthenticatePermission(Resources['Orders'], Actions['GetAll']), GetOrdersByPet)
 
 module.exports = router;

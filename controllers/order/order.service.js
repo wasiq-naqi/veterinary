@@ -741,3 +741,290 @@ exports.GetOrderStatus = async function ( _OBJECT ) {
     };
 
 }
+
+exports.getOrdersByPatient = async function ( _PATIENT, _USER, _DATE, _APPOINTMENT ) {
+    
+    let Patient = await db.Patient.findOne({
+        attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        where: {
+            id: _PATIENT,
+            live: true
+        },
+        raw: true
+    });
+
+    if(!Patient){
+
+        let error = new Error("Patient not found!");
+        error.status = 404;
+        return {
+            DB_error: error
+        };
+
+    }
+
+    let where = {
+        live: true
+    }
+
+    if(_DATE){
+
+        let searchOf = `${_DATE}`;
+        if(!where.hasOwnProperty(db.Sequelize.Op.and)) where[db.Sequelize.Op.and] = [];
+        // where[db.Sequelize.Op.and] = db.Sequelize.where(db.Sequelize.fn('date', db.Sequelize.col('Order.createdAt')), searchOf);
+        where[db.Sequelize.Op.and].push(db.Sequelize.where(db.Sequelize.fn('date', db.Sequelize.col('Order.createdAt')), searchOf));
+    }
+
+    if(_APPOINTMENT){
+
+        let searchOf = `${_APPOINTMENT}`;
+
+        if(!where.hasOwnProperty(db.Sequelize.Op.and)) where[db.Sequelize.Op.and] = [];
+        where[db.Sequelize.Op.and].push({ appointment: searchOf });
+        
+    }
+
+    let include = [
+        {
+            as: 'OrderBreakdowns',
+            model: db.OrderBreakdown, // will create a left join
+            paranoid: false, 
+            required: false,
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            where: {
+                live: true
+            }
+        },
+        {
+            as: 'Treatments',
+            model: db.Treatment, // will create a left join
+            paranoid: false, 
+            required: false,
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            include: [
+                {
+                    as: 'Pet',
+                    model: db.Pet,
+                    attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                },
+                {
+                    as: 'Doctor',
+                    model: db.User,
+                    attributes: ['id', 'image', 'name'],
+                }
+            ],
+            where: {
+                live: true
+            }
+        },
+    ]
+
+    let association = {
+        include,
+        where,
+        subQuery: false,
+        distinct: true,
+        attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] }
+    };
+
+    // Restrict doctor from getting order details
+    if(_USER.roleId == Roles['Doctor']){
+        association.include = [
+            {
+                as: 'Treatments',
+                model: db.Treatment, // will create a left join
+                paranoid: false, 
+                required: false,
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                include: [
+                    {
+                        as: 'Pet',
+                        model: db.Pet,
+                        attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                    },
+                    {
+                        as: 'Doctor',
+                        model: db.User,
+                        attributes: ['id', 'image', 'name'],
+                    }
+                ],
+                where: {
+                    live: true
+                }
+            },
+        ]
+
+        // get only where appointments are true
+        association.where['appointment'] = true;
+
+        // Remove Price
+        association['attributes'] = { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live', 'price'] };
+    }
+
+    // console.log(Patient);
+
+    let result = await db.Order.findAndCountAll(association);
+    result['Patient'] = Patient;
+
+    return {
+        DB_value: result
+    };
+}
+
+exports.getOrdersByPet = async function ( _PET, _USER, _DATE, _APPOINTMENT ) {
+
+    let Pet = await db.Pet.findOne({
+        attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        where: {
+            id: _PET,
+            live: true
+        },
+        raw: true
+    });
+
+    if(!Pet){
+
+        let error = new Error("Pet not found!");
+        error.status = 404;
+        return {
+            DB_error: error
+        };
+
+    }
+
+    let Patient = await db.Patient.findOne({
+        attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        where: {
+            id: Pet.patientId,
+            // live: true
+        },
+        raw: true
+    });
+
+    if(!Patient){
+
+        let error = new Error("Patient not found!");
+        error.status = 404;
+        return {
+            DB_error: error
+        };
+
+    }
+
+    let where = {
+        live: true
+    }
+
+    if(_DATE){
+
+        let searchOf = `${_DATE}`;
+        if(!where.hasOwnProperty(db.Sequelize.Op.and)) where[db.Sequelize.Op.and] = [];
+        // where[db.Sequelize.Op.and] = db.Sequelize.where(db.Sequelize.fn('date', db.Sequelize.col('Order.createdAt')), searchOf);
+        where[db.Sequelize.Op.and].push(db.Sequelize.where(db.Sequelize.fn('date', db.Sequelize.col('Order.createdAt')), searchOf));
+    }
+
+    if(_APPOINTMENT){
+
+        let searchOf = `${_APPOINTMENT}`;
+
+        if(!where.hasOwnProperty(db.Sequelize.Op.and)) where[db.Sequelize.Op.and] = [];
+        where[db.Sequelize.Op.and].push({ appointment: searchOf });
+        
+    }
+
+    let include = [
+        {
+            as: 'OrderBreakdowns',
+            model: db.OrderBreakdown, // will create a left join
+            paranoid: false, 
+            required: false,
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            where: {
+                live: true
+            }
+        },
+        {
+            as: 'Treatments',
+            model: db.Treatment, // will create a left join
+            paranoid: false, 
+            required: false,
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            include: [
+                {
+                    as: 'Pet',
+                    model: db.Pet,
+                    attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                    required: true,
+                    where: {
+                        id: _PET
+                    }
+                },
+                {
+                    as: 'Doctor',
+                    model: db.User,
+                    attributes: ['id', 'image', 'name'],
+                }
+            ],
+            where: {
+                live: true
+            }
+        },
+    ]
+
+    let association = {
+        include,
+        where,
+        subQuery: false,
+        distinct: true,
+        attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] }
+    };
+
+    // Restrict doctor from getting order details
+    if(_USER.roleId == Roles['Doctor']){
+        association.include = [
+            {
+                as: 'Treatments',
+                model: db.Treatment, // will create a left join
+                paranoid: false, 
+                required: false,
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                include: [
+                    {
+                        as: 'Pet',
+                        model: db.Pet,
+                        attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                        required: true,
+                        where: {
+                            id: _PET
+                        }
+                    },
+                    {
+                        as: 'Doctor',
+                        model: db.User,
+                        attributes: ['id', 'image', 'name'],
+                    }
+                ],
+                where: {
+                    live: true
+                }
+            },
+        ]
+
+        // get only where appointments are true
+        association.where['appointment'] = true;
+
+        // Remove Price
+        association['attributes'] = { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live', 'price'] };
+    }
+
+    // console.log(Patient);
+
+    let result = await db.Order.findAndCountAll(association);
+    result['Patient'] = Patient;
+    result['Pet'] = Pet;
+
+    return {
+        DB_value: result
+    };
+
+}
