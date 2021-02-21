@@ -31,7 +31,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"image\": null,\r\n    \"emiratesId\": \"111111111111112\",\r\n    \"email\": null,\r\n    \"name\": \"lab 2 User\",\r\n    \"username\": \"user1\",\r\n    \"password\": \"user1\",\r\n    \"confirm_password\": \"user1\",\r\n    \"contact\": null,\r\n    \"role\": \"3\",\r\n    \"remarks\": null,\r\n    \"active\": true\r\n}",
+							"raw": "{\r\n    \"image\": null,\r\n    \"emiratesId\": \"01\",\r\n    \"email\": null,\r\n    \"name\": \"Receptionist\",\r\n    \"username\": \"receptionist1\",\r\n    \"password\": \"receptionist1\",\r\n    \"confirm_password\": \"receptionist1\",\r\n    \"contact\": null,\r\n    \"role\": \"4\",\r\n    \"remarks\": null,\r\n    \"active\": true\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -186,6 +186,46 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Update Password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"password\": \"doctor1\",\r\n    \"confirmPassword\": \"doctor1\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/users/password-reset/3",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"password-reset",
+								"3"
+							]
+						},
+						"description": "User can only update their password but admin can change everyons password."
+					},
+					"response": []
 				}
 			]
 		},
@@ -215,7 +255,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"patientId\": \"1\",\r\n    \"price\": 1000,\r\n    \"appointment\": true,\r\n    \"description\": \"Treatment\",\r\n    \"serviceId\": \"3\",\r\n    \"details\": []\r\n}",
+							"raw": "{\r\n    \"patientId\": \"1\",\r\n    \"appointment\": true,\r\n    \"description\": \"Treatment\",\r\n    \"details\": [\r\n        {\r\n            \"item\": \"Toy 1\",\r\n            \"price\": \"10\",\r\n            \"serviceId\": \"1\"\r\n        },\r\n        {\r\n            \"item\": \"Massage\",\r\n            \"price\": \"10\",\r\n            \"serviceId\": \"2\"\r\n        },\r\n        {\r\n            \"item\": \"Doctor\",\r\n            \"price\": \"1500\",\r\n            \"serviceId\": \"3\"\r\n        }\r\n    ]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -258,7 +298,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"patientId\": \"1\",\r\n    \"price\": 1000,\r\n    \"appointment\": true,\r\n    \"description\": \"Treatment\",\r\n    \"serviceId\": \"3\",\r\n    \"details\": []\r\n}",
+							"raw": "{\r\n    \"patientId\": \"1\",\r\n    \"appointment\": true,\r\n    \"description\": \"Treatment\",\r\n    \"details\": [\r\n        {\r\n            \"item\": \"10 days\",\r\n            \"price\": \"100\",\r\n            \"serviceId\": \"4\"\r\n        }\r\n    ]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -266,59 +306,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/api/orders/6",
+							"raw": "{{url}}/api/orders/1",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"api",
 								"orders",
-								"6"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "UpdateOrderStatus",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Auth-key",
-								"type": "text",
-								"value": "{{token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"status\": \"confirmed\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{url}}/api/orders/6/status",
-							"host": [
-								"{{url}}"
-							],
-							"path": [
-								"api",
-								"orders",
-								"6",
-								"status"
+								"1"
 							]
 						}
 					},
@@ -398,7 +393,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}/api/orders?pageNo=1&pageSize=1?date=2020-02-05",
+							"raw": "{{url}}/api/orders",
 							"host": [
 								"{{url}}"
 							],
@@ -408,12 +403,83 @@
 							],
 							"query": [
 								{
-									"key": "pageNo",
-									"value": "1"
-								},
+									"key": "search",
+									"value": "123456789",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetALLOrdersByPatient",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
 								{
-									"key": "pageSize",
-									"value": "1?date=2020-02-05"
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/orders/patient/1",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"patient",
+								"1"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "123456789",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetALLOrdersByPet",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/orders/pet/1",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"pet",
+								"1"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "123456789",
+									"disabled": true
 								}
 							]
 						}
@@ -720,7 +786,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"administrator\",\r\n    \"password\": \"krypton\"\r\n}",
+							"raw": "{\r\n    \"username\": \"doctor1\",\r\n    \"password\": \"doctor1\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -762,13 +828,19 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}/api/patients",
+							"raw": "{{url}}/api/patients?search=1",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"api",
 								"patients"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "1"
+								}
 							]
 						}
 					},
@@ -853,7 +925,7 @@
 								{
 									"key": "image",
 									"type": "file",
-									"src": "/C:/Users/nas/Pictures/download.png"
+									"src": []
 								},
 								{
 									"key": "name",
@@ -1085,7 +1157,7 @@
 								},
 								{
 									"key": "name",
-									"value": "Jerry",
+									"value": "Tom",
 									"type": "text"
 								},
 								{
@@ -1094,8 +1166,8 @@
 									"type": "text"
 								},
 								{
-									"key": "dob",
-									"value": "2012-11-05",
+									"key": "age",
+									"value": "15",
 									"type": "text"
 								},
 								{
@@ -1106,6 +1178,16 @@
 								{
 									"key": "patientId",
 									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "pet",
+									"value": "dog",
+									"type": "text"
+								},
+								{
+									"key": "color",
+									"value": "grey",
 									"type": "text"
 								}
 							]
@@ -1148,7 +1230,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/api/pets/all/patients?pageSize=1",
+							"raw": "{{url}}/api/pets/all/patients?pageSize=2",
 							"host": [
 								"{{url}}"
 							],
@@ -1161,7 +1243,7 @@
 							"query": [
 								{
 									"key": "pageSize",
-									"value": "1"
+									"value": "2"
 								}
 							]
 						}
