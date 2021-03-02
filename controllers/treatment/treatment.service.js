@@ -197,7 +197,7 @@ exports.Update = async (_OBJECT, _ID) => {
 
     }
 
-    let Save = await db.Treatment.Update(_OBJECT,{
+    let Save = await db.Treatment.update(_OBJECT,{
         where: {
             id: _ID
         }

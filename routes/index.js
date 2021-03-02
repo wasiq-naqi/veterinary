@@ -11,6 +11,9 @@ const OrderRoutes = require('./order.route');
 const patients = require('./patient.route');
 const pets = require('./pet.route');
 const treatments = require('./treatment.route');
+const petTypes = require('./petType.route');
+const item = require('./item.route');
+const package = require('./package.route');
 
 // router.get('/', (req, res)=>{
 //     res.send('API Page');
@@ -26,5 +29,8 @@ router.use('/orders', Authenticate, DecodeToken, OrderRoutes);
 router.use('/patients', Authenticate, DecodeToken, patients);
 router.use('/pets', Authenticate, DecodeToken, pets);
 router.use('/treatments', Authenticate, DecodeToken, treatments);
+router.use('/pet-types', Authenticate, DecodeToken, petTypes);
+router.use('/items', Authenticate, DecodeToken, item);
+router.use('/packages', Authenticate, DecodeToken, package);
 
 module.exports = router;

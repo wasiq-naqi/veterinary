@@ -27,6 +27,9 @@
     "sequelize-cli": "^5.5.1"
   },
   "devDependencies": {
-    "eslint": "^7.18.0"
+    "@typescript-eslint/eslint-plugin": "^4.16.1",
+    "@typescript-eslint/parser": "^4.16.1",
+    "eslint": "^7.21.0",
+    "eslint-plugin-require-path-exists": "^1.1.9"
   }
 }
