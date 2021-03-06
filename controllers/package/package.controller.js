@@ -14,11 +14,9 @@ const Schema = Joi.object({
 
 exports.GetAll = async (req, res, next) => {
 
-    let pageNo = req.query.pageNo;
-    let pageSize = req.query.pageSize;
+    const { pageNo, pageSize, petTypeId, serviceId, active, search } = req.query;
 
-
-    let { DB_error, DB_value } = await Service.GetAll(pageNo, pageSize);
+    let { DB_error, DB_value } = await Service.GetAll(pageNo, pageSize, { petTypeId, serviceId, active, search });
 
     if(DB_error){
 
@@ -32,8 +30,9 @@ exports.GetAll = async (req, res, next) => {
 
 exports.GetEachAndEvery = async (req, res, next) => {
 
+    const { petTypeId, serviceId, active, search } = req.query;
 
-    let { DB_error, DB_value } = await Service.GetEachAndEvery();
+    let { DB_error, DB_value } = await Service.GetEachAndEvery({ petTypeId, serviceId, active, search });
 
     if(DB_error){
 
@@ -46,8 +45,9 @@ exports.GetEachAndEvery = async (req, res, next) => {
 
 exports.GetAllActive = async (req, res, next) => {
 
+    const { petTypeId, serviceId, search } = req.query;
 
-    let { DB_error, DB_value } = await Service.GetAllActive();
+    let { DB_error, DB_value } = await Service.GetAllActive({ petTypeId, serviceId, search });
 
     if(DB_error){
 

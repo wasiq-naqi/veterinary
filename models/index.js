@@ -66,6 +66,15 @@ sequelize.authenticate()
     db.Treatment.belongsTo(db.User, { as: 'Doctor', foreignKey: 'createdBy'});
     db.Treatment.belongsTo(db.Pet, { as: 'Pet', foreignKey: 'petId'});
 
+    db.Item.belongsTo(db.PetType, { as: 'PetType', foreignKey: 'petTypeId'});
+    db.Item.belongsTo(db.Service, { as: 'Service', foreignKey: 'serviceId'});
+
+    db.Package.belongsTo(db.PetType, { as: 'PetType', foreignKey: 'petTypeId'});
+    db.Package.belongsTo(db.Service, { as: 'Service', foreignKey: 'serviceId'});
+    db.Package.hasMany( db.PackageItem , { as: 'PackageItems', foreignKey: 'packageId'} );
+
+    db.PackageItem.belongsTo( db.Item, { as: 'Item', foreignKey: 'itemId' }) ;
+
     // Synchronization
     sequelize.sync()
     .then(() => {

@@ -3,12 +3,87 @@ const { Pagination } = require('../../functions');
 
 let modelName = 'Package';
 
-exports.GetAll = async function ( _PAGE, _LIMIT) {
+exports.GetAll = async function ( _PAGE, _LIMIT, { petTypeId, serviceId, active, search }) {
+
+    let where = {
+        live: true
+    }
+
+    if(search){
+
+        // search = ( search == 'true' || search == 'false' )? ( search == 'true' ? 1 : 0 ) : search;
+        let searchOf = `%${search}%`;
+
+        // console.log('Search:', search);
+
+        where[db.Sequelize.Op.or]= [
+            { id: { [db.Sequelize.Op.like]: searchOf } },
+            { name: { [db.Sequelize.Op.like]: searchOf } },
+            { description: { [db.Sequelize.Op.like]: searchOf } },
+            { active: { [db.Sequelize.Op.like]: searchOf } },
+            { price: { [db.Sequelize.Op.like]: searchOf } },
+
+            { name: db.Sequelize.where(db.Sequelize.col('PetType.name'), { [db.Sequelize.Op.like]: searchOf  }) },
+            { name: db.Sequelize.where(db.Sequelize.col('Service.name'), { [db.Sequelize.Op.like]: searchOf  }) },
+
+        ]
+
+    }
+
+    // Matching Active State
+    if( active ){
+
+        active = ( active == 'true' || active == 'false' ) ? ( active == 'true' ? 1 : 0 ) : active;
+
+        if( !where[db.Sequelize.Op.and] ) where[db.Sequelize.Op.and] = [];
+        where[db.Sequelize.Op.and].push( { active: { [db.Sequelize.Op.eq]: active } } );
+
+    }
+
+    // Matching Service
+    if( serviceId ){
+
+        if( !where[db.Sequelize.Op.and] ) where[db.Sequelize.Op.and] = [];
+        where[db.Sequelize.Op.and].push( { serviceId: { [db.Sequelize.Op.eq]: serviceId } } );
+
+    }
+
+    // Matching PetType
+    if( petTypeId ){
+
+        if( !where[db.Sequelize.Op.and] ) where[db.Sequelize.Op.and] = [];
+        where[db.Sequelize.Op.and].push( { petTypeId: { [db.Sequelize.Op.eq]: petTypeId } } );
+
+    }
 
     let association = {
-        where: {
-            live: true
-        }
+        include: [
+            {
+                model: db.PetType,
+                as: 'PetType',
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            },
+            {
+                model: db.Service,
+                as: 'Service',
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            },
+            {
+                model: db.PackageItem,
+                as: 'PackageItems',
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                include: [
+                    {
+                        model: db.Item,
+                        as: 'Item',
+                        attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                    }
+                ]
+            }
+        ],
+        subQuery: false,
+        distinct: true,
+        where
     }
 
     let result = await Pagination(_PAGE, _LIMIT, db.Package, association);
@@ -19,13 +94,64 @@ exports.GetAll = async function ( _PAGE, _LIMIT) {
 
 }
 
-exports.GetEachAndEvery = async function () {
+exports.GetEachAndEvery = async function ({ petTypeId, serviceId, active, search }) {
     
+    let where = {
+        live: true
+    }
+
+    if(search){
+
+        // search = ( search == 'true' || search == 'false' )? ( search == 'true' ? 1 : 0 ) : search;
+        let searchOf = `%${search}%`;
+
+        // console.log('Search:', search);
+
+        where[db.Sequelize.Op.or]= [
+            { id: { [db.Sequelize.Op.like]: searchOf } },
+            { name: { [db.Sequelize.Op.like]: searchOf } },
+            { description: { [db.Sequelize.Op.like]: searchOf } },
+            { active: { [db.Sequelize.Op.like]: searchOf } },
+            { price: { [db.Sequelize.Op.like]: searchOf } },
+
+            { name: db.Sequelize.where(db.Sequelize.col('PetType.name'), { [db.Sequelize.Op.like]: searchOf  }) },
+            { name: db.Sequelize.where(db.Sequelize.col('Service.name'), { [db.Sequelize.Op.like]: searchOf  }) },
+
+        ]
+
+    }
+
+    // Matching Active State
+    if( active ){
+
+        active = ( active == 'true' || active == 'false' ) ? ( active == 'true' ? 1 : 0 ) : active;
+
+        if( !where[db.Sequelize.Op.and] ) where[db.Sequelize.Op.and] = [];
+        where[db.Sequelize.Op.and].push( { active: { [db.Sequelize.Op.eq]: active } } );
+
+    }
+
+    // Matching Service
+    if( serviceId ){
+
+        if( !where[db.Sequelize.Op.and] ) where[db.Sequelize.Op.and] = [];
+        where[db.Sequelize.Op.and].push( { serviceId: { [db.Sequelize.Op.eq]: serviceId } } );
+
+    }
+
+    // Matching PetType
+    if( petTypeId ){
+
+        if( !where[db.Sequelize.Op.and] ) where[db.Sequelize.Op.and] = [];
+        where[db.Sequelize.Op.and].push( { petTypeId: { [db.Sequelize.Op.eq]: petTypeId } } );
+
+    }
+
     let Response = await db.Package.findAll({
         attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-        where: {
-            live: true
-        },
+        where,
+        subQuery: false,
+        distinct: true,
         order: [
             ['id', 'DESC']
         ]
@@ -36,14 +162,54 @@ exports.GetEachAndEvery = async function () {
     };
 }
 
-exports.GetAllActive = async function () {
+exports.GetAllActive = async function ({ petTypeId, serviceId, search }) {
     
+    let where = {
+        live: true
+    }
+
+    if(search){
+
+        // search = ( search == 'true' || search == 'false' )? ( search == 'true' ? 1 : 0 ) : search;
+        let searchOf = `%${search}%`;
+
+        // console.log('Search:', search);
+
+        where[db.Sequelize.Op.or]= [
+            { id: { [db.Sequelize.Op.like]: searchOf } },
+            { name: { [db.Sequelize.Op.like]: searchOf } },
+            { description: { [db.Sequelize.Op.like]: searchOf } },
+            { active: { [db.Sequelize.Op.like]: searchOf } },
+            { price: { [db.Sequelize.Op.like]: searchOf } },
+
+            { name: db.Sequelize.where(db.Sequelize.col('PetType.name'), { [db.Sequelize.Op.like]: searchOf  }) },
+            { name: db.Sequelize.where(db.Sequelize.col('Service.name'), { [db.Sequelize.Op.like]: searchOf  }) },
+
+        ]
+
+    }
+
+    // Matching Service
+    if( serviceId ){
+
+        if( !where[db.Sequelize.Op.and] ) where[db.Sequelize.Op.and] = [];
+        where[db.Sequelize.Op.and].push( { serviceId: { [db.Sequelize.Op.eq]: serviceId } } );
+
+    }
+
+    // Matching PetType
+    if( petTypeId ){
+
+        if( !where[db.Sequelize.Op.and] ) where[db.Sequelize.Op.and] = [];
+        where[db.Sequelize.Op.and].push( { petTypeId: { [db.Sequelize.Op.eq]: petTypeId } } );
+
+    }
+
     let PonticDesign = await db.Package.findAll({
         attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-        where: {
-            live: true,
-            active: true
-        },
+        where,
+        subQuery: false,
+        distinct: true,
         order: [
             ['id', 'DESC']
         ]
@@ -61,7 +227,31 @@ exports.Get = async function ( _ID ) {
         where: {
             id: _ID,
             live: true
-        }
+        },
+        include: [
+            {
+                model: db.PetType,
+                as: 'PetType',
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            },
+            {
+                model: db.Service,
+                as: 'Service',
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            },
+            {
+                model: db.PackageItem,
+                as: 'PackageItems',
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                include: [
+                    {
+                        model: db.Item,
+                        as: 'Item',
+                        attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                    }
+                ]
+            }
+        ]
     });
 
 
@@ -147,13 +337,52 @@ exports.Create = async (_OBJECT) => {
 
     }
 
-    delete result.dataValues.createdBy;
-    delete result.dataValues.updatedBy;
-    delete result.dataValues.updatedAt;
-    delete result.dataValues.live;
+
+    let Instance = await db.Package.findOne({
+        attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        where: {
+            id: result.dataValues.id,
+            live: true
+        },
+        include: [
+            {
+                model: db.PetType,
+                as: 'PetType',
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            },
+            {
+                model: db.Service,
+                as: 'Service',
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            },
+            {
+                model: db.PackageItem,
+                as: 'PackageItems',
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                include: [
+                    {
+                        model: db.Item,
+                        as: 'Item',
+                        attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                    }
+                ]
+            }
+        ]
+    });
+
+
+    if(!Instance){
+
+        let error = new Error(modelName + " not found!");
+        error.status = 404;
+        return {
+            DB_error: error
+        };
+
+    }
 
     return {
-        DB_value: result
+        DB_value: Instance
     };
     
     
@@ -249,13 +478,51 @@ exports.Update = async (_OBJECT, _ID) => {
     
         }
 
-        delete result.dataValues.createdBy;
-        delete result.dataValues.updatedBy;
-        delete result.dataValues.updatedAt;
-        delete result.dataValues.live;
-
+        let Instance2 = await db.Package.findOne({
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            where: {
+                id: result.dataValues.id,
+                live: true
+            },
+            include: [
+                {
+                    model: db.PetType,
+                    as: 'PetType',
+                    attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                },
+                {
+                    model: db.Service,
+                    as: 'Service',
+                    attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                },
+                {
+                    model: db.PackageItem,
+                    as: 'PackageItems',
+                    attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                    include: [
+                        {
+                            model: db.Item,
+                            as: 'Item',
+                            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                        }
+                    ]
+                }
+            ]
+        });
+    
+    
+        if(!Instance2){
+    
+            let error = new Error(modelName + " not found!");
+            error.status = 404;
+            return {
+                DB_error: error
+            };
+    
+        }
+    
         return {
-            DB_value: result
+            DB_value: Instance2
         };
 
     }
