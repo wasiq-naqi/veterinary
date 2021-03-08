@@ -3,7 +3,7 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
 
-  return queryInterface.createTable('order_breakdown', { 
+  return queryInterface.createTable('order_packages', { 
     id : {
       type: Sequelize.INTEGER(11),
       allowNull: false,
@@ -14,13 +14,9 @@ module.exports = {
       type: Sequelize.INTEGER(11),
       allowNull: false,
     },
-    serviceId:{
+    packageId : {
       type: Sequelize.INTEGER(11),
       allowNull: false,
-    },
-    item : {
-      type: Sequelize.STRING(),
-      allowNull: true,
     },
     price:{
       type: Sequelize.INTEGER(11),
@@ -66,7 +62,7 @@ module.exports = {
 
   down: (queryInterface) => {
 
-    return queryInterface.dropTable('order_breakdown');
+    return queryInterface.dropTable('order_packages');
 
     /*
       Add reverting commands here.

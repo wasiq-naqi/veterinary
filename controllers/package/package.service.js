@@ -273,6 +273,8 @@ exports.Get = async function ( _ID ) {
 
 exports.Create = async (_OBJECT) => {
 
+    let items = {};
+
     let Service = await db.Service.findOne({
         attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
         where: {
@@ -324,6 +326,8 @@ exports.Create = async (_OBJECT) => {
     
         }
 
+        items[item] = itemInstance.dataValues
+
     }
 
     let result = await db.Package.create(_OBJECT);
@@ -332,7 +336,8 @@ exports.Create = async (_OBJECT) => {
 
         await db.PackageItem.create({
             packageId: result.dataValues.id,
-            itemId: item
+            itemId: item,
+            price: items[item].price
         });
 
     }
@@ -390,12 +395,29 @@ exports.Create = async (_OBJECT) => {
 
 exports.Update = async (_OBJECT, _ID) => {
 
+    let items = {};
+    let itemsToDelete = [];
+
     let Instance = await db.Package.findOne({
         attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
         where: {
             id: _ID,
             live: true
-        }
+        },
+        include: [
+            {
+                model: db.PackageItem,
+                as: 'PackageItems',
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                include: [
+                    {
+                        model: db.Item,
+                        as: 'Item',
+                        attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                    }
+                ]
+            }
+        ],
     });
 
     if(!Instance){
@@ -416,7 +438,6 @@ exports.Update = async (_OBJECT, _ID) => {
         }
     });
 
-
     if(!Service){
 
         let error = new Error("Service not found!");
@@ -434,7 +455,6 @@ exports.Update = async (_OBJECT, _ID) => {
             live: true
         }
     });
-
 
     if(!PetType){
 
@@ -459,21 +479,36 @@ exports.Update = async (_OBJECT, _ID) => {
     
         }
 
+        items[item] = itemInstance.dataValues
+
+    }
+
+    // Check for deleted items
+    let CurrentPackage = Instance.get({ plain: true });
+    for( let item of CurrentPackage.PackageItems ){
+        if( !_OBJECT.itemIds.includes(item.itemId) ) itemsToDelete.push(item.id);
     }
 
     try{
 
         let result = await Instance.update( _OBJECT );
 
-        // Destroying previous item
-        await db.PackageItem.destroy({ where: { packageId: _ID } });
+        // Destroying items
+        await db.PackageItem.destroy({ where: { id: { [db.Sequelize.Op.in]: itemsToDelete } } });
 
         for( let item of _OBJECT.itemIds ){
 
             // Reassigning new items
-            await db.PackageItem.create({
-                packageId: _ID,
-                itemId: item
+            await db.PackageItem.findOrCreate({
+                where: {
+                    packageId: _ID,
+                    itemId: item
+                },
+                defaults: {
+                    packageId: _ID,
+                    itemId: item,
+                    price: items[item].price
+                }
             });
     
         }

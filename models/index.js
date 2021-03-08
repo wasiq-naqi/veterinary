@@ -15,7 +15,7 @@ const db = {};
 
 const sequelize = new Sequelize(process.env.DB_DATABASE, process.env.DB_USER, process.env.DB_PASS, { 
   host: process.env.DB_HOST, 
-  dialect: 'mysql',
+  dialect: 'mariadb',
   logging: false,
   timezone: '+05:00', //fron writing into database
   // dialectOptions: {
@@ -54,8 +54,11 @@ sequelize.authenticate()
     db.Pet.belongsTo(db.Patient, { foreignKey: 'patientId'});
     db.Patient.hasMany(db.Pet, { as: 'Pets', foreignKey: 'patientId'});
 
-    db.OrderBreakdown.belongsTo(db.Order, { foreignKey: 'orderId'});
-    db.Order.hasMany(db.OrderBreakdown, { as: 'OrderBreakdowns', foreignKey: 'orderId'});
+    db.OrderItem.belongsTo(db.Order, { foreignKey: 'orderId'});
+    db.Order.hasMany(db.OrderItem, { as: 'Items', foreignKey: 'orderId'});
+
+    db.OrderPackage.belongsTo(db.Order, { foreignKey: 'orderId'});
+    db.Order.hasMany(db.OrderPackage, { as: 'Packages', foreignKey: 'orderId'});
     
     // db.Order.belongsTo(db.Service, { foreignKey: 'serviceId'});
     db.Order.belongsTo(db.Patient, { foreignKey: 'patientId'});

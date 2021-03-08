@@ -2,21 +2,17 @@ const Joi = require('@hapi/joi');
 const Service = require('./order.service');
 const { Errors } = require('../../functions');
 
-let item = Joi.object().keys({
-    item: Joi.string().required(),
-    price: Joi.number().required(),
-    serviceId: Joi.number().required(),
-});
+// let item = Joi.object().keys({
+//     itemId: Joi.string().required(),
+// });
 
 const Schema = Joi.object({
-
     patientId: Joi.number().required(),
-    // price: Joi.number().required(),
     appointment: Joi.boolean().required(),
+    checkUpPrice: Joi.number().required(),
     description: Joi.string().required(),
-    // serviceId: Joi.number().required(),
-    details: Joi.array().required().items(item),
-
+    itemIds: Joi.array().required().items( Joi.number() ),
+    packageIds: Joi.array().required().items( Joi.number() ),
 });
 
 let SchemaStatus = Joi.object({
@@ -230,7 +226,7 @@ exports.GetOrdersByPatient = async (req, res, next) => {
         return Errors(res, error);
     }
 
-    let { search, date, appointment } = req.query;
+    let { date, appointment } = req.query;
 
     let { DB_error, DB_value } = await Service.getOrdersByPatient(
         req.params.id, 

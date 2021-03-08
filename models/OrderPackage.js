@@ -1,23 +1,23 @@
 
 module.exports = (sequelize, Datatypes) => {
-    return sequelize.define('PackageItem', {
+    return sequelize.define('OrderPackage', {
       id : {
         type: Datatypes.INTEGER(11),
         allowNull: false,
         autoIncrement: true,
         primaryKey: true
       },
+      orderId:{
+        type: Datatypes.INTEGER(11),
+        allowNull: false,
+      },
       packageId : {
         type: Datatypes.INTEGER(11),
-        allowNull: false
+        allowNull: false,
       },
-      itemId : {
+      price:{
         type: Datatypes.INTEGER(11),
-        allowNull: false
-      },
-      price: {
-        type: Datatypes.INTEGER(11),
-        allowNull: false
+        allowNull: false,
       },
       createdBy: {
         type: Datatypes.INTEGER(11),
@@ -32,7 +32,8 @@ module.exports = (sequelize, Datatypes) => {
         allowNull: false,
         defaultValue: true    
       }
-    },{ 
-      tableName: 'package_items'
+    }
+    ,{ 
+      tableName: 'order_packages'
     });
 }

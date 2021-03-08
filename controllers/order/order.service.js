@@ -16,6 +16,7 @@ exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH, _DATE, _AP
             // { patientEmiratesId: { [db.Sequelize.Op.like]: searchOf } },
             { description: { [db.Sequelize.Op.like]: searchOf } },
             { appointment: { [db.Sequelize.Op.like]: searchOf } },
+            { checkUpPrice: { [db.Sequelize.Op.like]: searchOf } },
             { price: { [db.Sequelize.Op.like]: searchOf } },
 
             { name: db.Sequelize.where(db.Sequelize.col('Patient.name'), { [db.Sequelize.Op.like]: searchOf  }) },
@@ -54,14 +55,18 @@ exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH, _DATE, _AP
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
         },
         {
-            as: 'OrderBreakdowns',
-            model: db.OrderBreakdown, // will create a left join
+            as: 'Items',
+            model: db.OrderItem, // will create a left join
             paranoid: false, 
             required: false,
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-            where: {
-                live: true
-            }
+        },
+        {
+            as: 'Packages',
+            model: db.OrderPackage, // will create a left join
+            paranoid: false, 
+            required: false,
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
         },
         {
             as: 'Treatments',
@@ -157,14 +162,18 @@ exports.Get = async function ( _ID, _USER ) {
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
         },
         {
-            as: 'OrderBreakdowns',
-            model: db.OrderBreakdown, // will create a left join
+            as: 'Items',
+            model: db.OrderItem, // will create a left join
             paranoid: false, 
             required: false,
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-            where: {
-                live: true
-            }
+        },
+        {
+            as: 'Packages',
+            model: db.OrderPackage, // will create a left join
+            paranoid: false, 
+            required: false,
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
         },
         {
             as: 'Treatments',
@@ -252,6 +261,8 @@ exports.Get = async function ( _ID, _USER ) {
 exports.Create = async ( _OBJECT ) => {
 
     let orderPrice = 0;
+    let items = {};
+    let packages = {};
 
     if( _OBJECT.patientId ){
 
@@ -274,19 +285,20 @@ exports.Create = async ( _OBJECT ) => {
 
     }
 
-    // Validating services
-    for(let item of _OBJECT['details']){
+    // Validating Items and calculating prices
+    for(let item of _OBJECT['itemIds']){
 
-        let Service = await db.Service.findOne({
+        let Item = await db.Item.findOne({
             where: {
-                id: item.serviceId,
+                id: item,
                 live: true
-            }
+            },
+            raw: true
         });
 
-        if(!Service){
+        if(!Item){
 
-            let error = new Error(`Service does not exists having id '${item.serviceId}'`);
+            let error = new Error(`Item does not exists having id '${item}'`);
             error.status = 400;
             return {
                 DB_error: error
@@ -294,15 +306,45 @@ exports.Create = async ( _OBJECT ) => {
 
         }
 
-        orderPrice += +item.price;
+        orderPrice += +Item.price;
+        items[item] = Item; 
         
     }
+
+    // Validating Packages and calculating prices
+    for(let item of _OBJECT['packageIds']){
+
+        let Item = await db.Package.findOne({
+            where: {
+                id: item,
+                live: true
+            },
+            raw: true
+        });
+
+        if(!Item){
+
+            let error = new Error(`Package does not exists having id '${item}'`);
+            error.status = 400;
+            return {
+                DB_error: error
+            }; 
+
+        }
+
+        orderPrice += +Item.price;
+        packages[item] = Item; 
+
+    }
+
+    // adding checkup price
+    orderPrice += +_OBJECT.checkUpPrice;
 
     // Creating Order
     let orderObject = {
         patientId: _OBJECT.patientId,
         appointment: _OBJECT.appointment,
-        // Appending the calculated price
+        checkUpPrice: _OBJECT.checkUpPrice,
         price: orderPrice,
         description: _OBJECT.description,
         createdBy: _OBJECT.createdBy,
@@ -311,12 +353,21 @@ exports.Create = async ( _OBJECT ) => {
     let Order = await db.Order.create(orderObject);
 
     if(Order){
-        for(let item of _OBJECT['details']){
+        for(let item of _OBJECT['itemIds']){
 
-            await db.OrderBreakdown.create({
-                item: item.item,
-                price: item.price,
-                serviceId: item.serviceId,
+            await db.OrderItem.create({
+                itemId: item,
+                price: items[item].price,
+                orderId: Order.dataValues.id,
+                createdBy: _OBJECT.createdBy,
+            });
+            
+        }
+        for(let item of _OBJECT['packageIds']){
+
+            await db.OrderPackage.create({
+                packageId: item,
+                price: packages[item].price,
                 orderId: Order.dataValues.id,
                 createdBy: _OBJECT.createdBy,
             });
@@ -337,19 +388,64 @@ exports.Create = async ( _OBJECT ) => {
 
 exports.Update = async (_OBJECT, _ID, condition = {}) => {
 
-    let Order = null, orderPrice = 0;
+    let OrderInstance = null, orderPrice = 0;
+    let items = {};
+    let packages = {};
+
+    let itemsToAdd = [], packagesToAdd = [];
+
     if( _ID ){
 
         let where = {
             id: _ID,
             live: true
         }
+
+        let include = [
+            {
+                as: 'Patient',
+                model: db.Patient, // will create a left join
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            },
+            {
+                as: 'Items',
+                model: db.OrderItem, // will create a left join
+                paranoid: false, 
+                required: false,
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            },
+            {
+                as: 'Packages',
+                model: db.OrderPackage, // will create a left join
+                paranoid: false, 
+                required: false,
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            },
+            {
+                as: 'Treatments',
+                model: db.Treatment, // will create a left join
+                paranoid: false, 
+                required: false,
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                include: [
+                    {
+                        as: 'Doctor',
+                        model: db.User,
+                        attributes: ['id', 'image', 'name'],
+                    }
+                ],
+                where: {
+                    live: true
+                }
+            },
+        ]
         
-        Order = await db.Order.findOne({
-            where
+        OrderInstance = await db.Order.findOne({
+            where,
+            include
         });
 
-        if(!Order){
+        if(!OrderInstance){
 
             let error = new Error(`Order does not exists having id '${_ID}'`);
             error.status = 400;
@@ -383,22 +479,25 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
 
     }
     
-    orderPrice = Order.dataValues.price;
-    console.log('Prices', orderPrice ,Order.dataValues.price);
+    let plainOrder = OrderInstance.get({ plain: true });
 
-    // Validating services
-    for(let item of _OBJECT['details']){
+    // Validating Items and calculating prices
+    for(let item of _OBJECT['itemIds']){
 
-        let Service = await db.Service.findOne({
+        let present = plainOrder.Items.find( e => e.itemId == item );
+        if( present ) continue;
+
+        let Item = await db.Item.findOne({
             where: {
-                id: item.serviceId,
+                id: item,
                 live: true
-            }
+            },
+            raw: true
         });
 
-        if(!Service){
+        if(!Item){
 
-            let error = new Error(`Service does not exists having id '${item.serviceId}'`);
+            let error = new Error(`Item does not exists having id '${item}'`);
             error.status = 400;
             return {
                 DB_error: error
@@ -406,92 +505,161 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
 
         }
 
-        orderPrice += +item.price;
+        orderPrice += +Item.price;
+        items[item] = Item;
+        itemsToAdd.push(item);
         
     }
 
-    // Soft deleting previos service items
-    // await db.OrderBreakdown.update({ live: false }, { where: { orderId: _ID } });
+    // Validating Packages and calculating prices
+    for(let item of _OBJECT['packageIds']){
+
+        let present = plainOrder.Packages.find( e => e.packageId == item );
+        if( present ) continue;
+
+        let Item = await db.Package.findOne({
+            where: {
+                id: item,
+                live: true
+            },
+            raw: true
+        });
+
+        if(!Item){
+
+            let error = new Error(`Package does not exists having id '${item}'`);
+            error.status = 400;
+            return {
+                DB_error: error
+            }; 
+
+        }
+
+        orderPrice += +Item.price;
+        packages[item] = Item;
+        packagesToAdd.push(item);
+
+    }
+
+    console.log('---------------------------------------');
+    console.log('Order Price:', orderPrice);
+    console.log('Items To Add:', itemsToAdd);
+    console.log('Packages To Add:', packagesToAdd);
     
-    /*
-    **After validating success
-    */
+    // Validating Price
+    if( _OBJECT.checkUpPrice != plainOrder.checkUpPrice ){
+        console.log('Diff Price');
+        _OBJECT.price = plainOrder.price - plainOrder.checkUpPrice;
+        _OBJECT.price += (_OBJECT.checkUpPrice + orderPrice);
+    }
+    else{
+        console.log('Same Price');
+        _OBJECT.price = plainOrder.price + orderPrice;
+    }
 
-    Order.patientId = _OBJECT.patientId,
-    Order.appointment = _OBJECT.appointment,
-    // Appending the calculated price
-    Order.price = orderPrice,
-    Order.description = _OBJECT.description,
-    Order.updatedBy = _OBJECT.updatedBy,
+    console.log('Object Price:',  _OBJECT.price, plainOrder.price, orderPrice);
 
-    await Order.save();
+    try{
 
-    if(Order){
-        for(let item of _OBJECT['details']){
+        await OrderInstance.update( _OBJECT );
+        
+        for(let item of itemsToAdd ){
 
-            await db.OrderBreakdown.create({
-                item: item.item,
-                price: item.price,
-                serviceId: item.serviceId,
+            await db.OrderItem.create({
+                itemId: item,
+                price: items[item].price,
                 orderId: _ID,
-                updatedBy: _OBJECT.updatedBy,
+                createdBy: _OBJECT.createdBy,
             });
             
         }
-    }
 
-    let attributes = { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] };
+        for(let item of packagesToAdd ){
 
-    let where = {
-        live: true,
-        id: _ID,
-    }
+            await db.OrderPackage.create({
+                packageId: item,
+                price: packages[item].price,
+                orderId: _ID,
+                createdBy: _OBJECT.createdBy,
+            });
+            
+        }
 
-    let include = [
-        {
-            as: 'Patient',
-            model: db.Patient, // will create a left join
-            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-        },
-        {
-            as: 'OrderBreakdowns',
-            model: db.OrderBreakdown, // will create a left join
-            paranoid: false, 
-            required: false,
-            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-            where: {
-                live: true
-            }
-        },
-        {
-            as: 'Treatments',
-            model: db.Treatment, // will create a left join
-            paranoid: false, 
-            required: false,
-            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-            include: [
-                {
-                    as: 'Doctor',
-                    model: db.User,
-                    attributes: ['id', 'image', 'name'],
+        let where = {
+            id: _ID,
+            live: true
+        }
+
+        let include = [
+            {
+                as: 'Patient',
+                model: db.Patient, // will create a left join
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            },
+            {
+                as: 'Items',
+                model: db.OrderItem, // will create a left join
+                paranoid: false, 
+                required: false,
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            },
+            {
+                as: 'Packages',
+                model: db.OrderPackage, // will create a left join
+                paranoid: false, 
+                required: false,
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            },
+            {
+                as: 'Treatments',
+                model: db.Treatment, // will create a left join
+                paranoid: false, 
+                required: false,
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                include: [
+                    {
+                        as: 'Doctor',
+                        model: db.User,
+                        attributes: ['id', 'image', 'name'],
+                    }
+                ],
+                where: {
+                    live: true
                 }
-            ],
-            where: {
-                live: true
-            }
-        },
-    ]
+            },
+        ]
+        
+        let OrderInstance2 = await db.Order.findOne({
+            where,
+            include
+        });
 
-    Order = await db.Order.findOne({
-        where,
-        include,
-        attributes
-    });
+        if(!OrderInstance2){
 
-    return {
-        DB_value: Order
-    };
+            let error = new Error(`Order does not exists having id '${_ID}'`);
+            error.status = 400;
+            return {
+                DB_error: error
+            }; 
 
+        }
+
+        return {
+            DB_value: OrderInstance2
+        };
+
+    }
+    catch( Excp ){
+
+        console.log(Excp);
+
+        let error = new Error("");
+        error.status = 500;
+        return {
+            DB_error: error
+        };
+
+    }
 
 }
 
@@ -786,14 +954,18 @@ exports.getOrdersByPatient = async function ( _PATIENT, _USER, _DATE, _APPOINTME
 
     let include = [
         {
-            as: 'OrderBreakdowns',
-            model: db.OrderBreakdown, // will create a left join
+            as: 'Items',
+            model: db.OrderItem, // will create a left join
             paranoid: false, 
             required: false,
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-            where: {
-                live: true
-            }
+        },
+        {
+            as: 'Packages',
+            model: db.OrderPackage, // will create a left join
+            paranoid: false, 
+            required: false,
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
         },
         {
             as: 'Treatments',
@@ -934,14 +1106,18 @@ exports.getOrdersByPet = async function ( _PET, _USER, _DATE, _APPOINTMENT ) {
 
     let include = [
         {
-            as: 'OrderBreakdowns',
-            model: db.OrderBreakdown, // will create a left join
+            as: 'Items',
+            model: db.OrderItem, // will create a left join
             paranoid: false, 
             required: false,
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-            where: {
-                live: true
-            }
+        },
+        {
+            as: 'Packages',
+            model: db.OrderPackage, // will create a left join
+            paranoid: false, 
+            required: false,
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
         },
         {
             as: 'Treatments',

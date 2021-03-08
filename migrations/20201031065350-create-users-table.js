@@ -72,7 +72,6 @@ module.exports = {
       defaultValue: Sequelize.NOW,
       onUpdate : Sequelize.NOW,
       allowNull: false,
-      onUpdate: Sequelize.NOW
     },
     live: {
       type: Sequelize.BOOLEAN,
