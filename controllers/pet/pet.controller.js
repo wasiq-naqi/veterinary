@@ -9,8 +9,10 @@ const Schema = Joi.object({
     color: Joi.string().allow('', null),
     description: Joi.string().allow('', null),
     gender: Joi.string().allow('', null),
-    age: Joi.date().allow('', null),
+    age: Joi.number().allow('', null),
+    dob: Joi.date().allow('', null),
     patientId: Joi.number().required(),
+    petTypeId: Joi.number().required(),
 });
 
 const PatientPetsSchema = Joi.object({

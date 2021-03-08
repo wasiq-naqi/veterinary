@@ -35,10 +35,18 @@ module.exports = {
       allowNull: true,
     },
     age : {
+      type: Sequelize.INTEGER(),
+      allowNull: true,
+    },
+    dob : {
       type: Sequelize.DATE(),
       allowNull: true,
     },
     patientId : {
+      type: Sequelize.INTEGER(11),
+      allowNull: false,
+    },
+    petTypeId : {
       type: Sequelize.INTEGER(11),
       allowNull: false,
     },

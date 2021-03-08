@@ -32,10 +32,18 @@ module.exports = (sequelize, Datatypes) => {
         allowNull: true,
       },
       age : {
+        type: Datatypes.INTEGER(),
+        allowNull: true,
+      },
+      dob : {
         type: Datatypes.DATE(),
         allowNull: true,
       },
       patientId : {
+        type: Datatypes.INTEGER(11),
+        allowNull: false,
+      },
+      petTypeId : {
         type: Datatypes.INTEGER(11),
         allowNull: false,
       },

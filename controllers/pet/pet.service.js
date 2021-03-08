@@ -83,6 +83,23 @@ exports.Create = async (_OBJECT) => {
 
     }
 
+    let PetType = await db.PetType.findOne({
+        where: {
+            id: _OBJECT.petTypeId,
+            live: true
+        }
+    })
+
+    if(!PetType){
+
+        let error = new Error("Pet type id not found!");
+        error.status = 404;
+        return {
+            DB_error: error
+        };
+
+    }
+
     let result = await db.Pet.create(_OBJECT);
 
     delete result.dataValues.createdBy;
@@ -135,6 +152,23 @@ exports.Update = async (_OBJECT, _ID) => {
 
     }
 
+    let PetType = await db.PetType.findOne({
+        where: {
+            id: _OBJECT.petTypeId,
+            live: true
+        }
+    })
+
+    if(!PetType){
+
+        let error = new Error("Pet type id not found!");
+        error.status = 404;
+        return {
+            DB_error: error
+        };
+
+    }
+
     if(_OBJECT.image != 'null' && _OBJECT.image != null && _OBJECT.image != ''){
         Pet.image = _OBJECT.image;
     }
@@ -146,6 +180,7 @@ exports.Update = async (_OBJECT, _ID) => {
     Pet.gender = _OBJECT.gender;
     Pet.dob = _OBJECT.dob;
     Pet.patientId = _OBJECT.patientId;
+    Pet.patientId = _OBJECT.petTypeId;
     Pet.description = _OBJECT.description;
     Pet.updatedBy = _OBJECT.updatedBy;
 
