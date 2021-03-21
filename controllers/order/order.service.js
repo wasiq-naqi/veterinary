@@ -348,6 +348,7 @@ exports.Create = async ( _OBJECT ) => {
         price: orderPrice,
         description: _OBJECT.description,
         createdBy: _OBJECT.createdBy,
+        followUp: _OBJECT.followUp
     }
 
     let Order = await db.Order.create(orderObject);
@@ -375,6 +376,37 @@ exports.Create = async ( _OBJECT ) => {
         }
     }
 
+    if( _OBJECT.followUp ){
+
+        try{
+
+            // Creating a follow up entry
+            let FollowUpInstance = await db.FollowUp.findOne({
+                limit: 1,
+                order: [ [ 'createdAt', 'DESC' ]],
+                where: {
+                    patientId: _OBJECT.patientId,
+                }
+            });
+
+            
+            if( FollowUpInstance && !FollowUpInstance.dataValues.isFollowUpDone ){
+                await FollowUpInstance.update({ isFollowUpDone: true });
+            }
+
+        }
+        catch( Excp ){
+
+            let error = new Error("");
+            error.status = 500;
+            return {
+                DB_error: error
+            };
+
+        }
+        
+    }
+    
     _OBJECT.id = Order.dataValues.id;
     _OBJECT.price = orderPrice;
     _OBJECT.createdAt = Order.dataValues.createdAt;
@@ -932,7 +964,8 @@ exports.getOrdersByPatient = async function ( _PATIENT, _USER, _DATE, _APPOINTME
     }
 
     let where = {
-        live: true
+        live: true,
+        patientId: _PATIENT
     }
 
     if(_DATE){
@@ -1123,7 +1156,7 @@ exports.getOrdersByPet = async function ( _PET, _USER, _DATE, _APPOINTMENT ) {
             as: 'Treatments',
             model: db.Treatment, // will create a left join
             paranoid: false, 
-            required: false,
+            required: true,
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
             include: [
                 {

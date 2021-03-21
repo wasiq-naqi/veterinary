@@ -255,7 +255,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"patientId\": \"1\",\r\n    \"appointment\": true,\r\n    \"checkUpPrice\": 200,\r\n    \"description\": \"Treatment\",\r\n    \"itemIds\": [ 1,2 ],\r\n    \"packageIds\": [ 1 ]\r\n}",
+							"raw": "{\r\n    \"patientId\": \"1\",\r\n    \"appointment\": true,\r\n    \"checkUpPrice\": 200,\r\n    \"description\": \"Treatment\",\r\n    \"itemIds\": [ 1 ],\r\n    \"packageIds\": [ 1 ],\r\n    \"followUp\": true\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -2065,7 +2065,8 @@
 								{
 									"key": "petTypeId",
 									"value": "1",
-									"type": "text"
+									"type": "text",
+									"disabled": true
 								}
 							]
 						},
@@ -2179,19 +2180,20 @@
 								{
 									"key": "petTypeId",
 									"value": "1",
-									"type": "text"
+									"type": "text",
+									"disabled": true
 								}
 							]
 						},
 						"url": {
-							"raw": "{{url}}/api/pets/2",
+							"raw": "{{url}}/api/pets/3",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"api",
 								"pets",
-								"2"
+								"3"
 							]
 						}
 					},
@@ -2305,7 +2307,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"orderId\": \"1\",\r\n    \"petId\": \"1\",\r\n    \"statement\": \"Malaria\",\r\n    \"prescription\": \"Drink Water and beware of mosquitoes\",\r\n    \"description\": \"Concentrate of prescription\"\r\n}",
+							"raw": "{\r\n    \"orderId\": \"1\",\r\n    \"petId\": \"1\",\r\n    \"statement\": \"Malaria\",\r\n    \"prescription\": \"Drink Water and beware of mosquitoes\",\r\n    \"description\": \"Concentrate of prescription\",\r\n    \"followUp\": \"2021-03-25\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -2403,6 +2405,119 @@
 								"api",
 								"treatments",
 								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Notification",
+			"item": [
+				{
+					"name": "Get All Notifications With Pagination",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/notifications?pageNo=1&pageSize=10",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"notifications"
+							],
+							"query": [
+								{
+									"key": "pageNo",
+									"value": "1"
+								},
+								{
+									"key": "pageSize",
+									"value": "10"
+								},
+								{
+									"key": "date",
+									"value": "2021-03-25",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Notifications",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/notifications/all/records?date=2021-03-25",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"notifications",
+								"all",
+								"records"
+							],
+							"query": [
+								{
+									"key": "date",
+									"value": "2021-03-25"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Make Notifications Read",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/notifications/3",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"notifications",
+								"3"
 							]
 						}
 					},

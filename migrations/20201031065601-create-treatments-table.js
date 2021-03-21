@@ -35,7 +35,7 @@ module.exports = {
       allowNull: true,
     },
     followUp:{
-      type: Sequelize.INTEGER(),
+      type: Sequelize.DATE,
       allowNull: true,
     },
     createdBy: {

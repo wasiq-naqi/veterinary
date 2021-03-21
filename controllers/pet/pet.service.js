@@ -83,22 +83,22 @@ exports.Create = async (_OBJECT) => {
 
     }
 
-    let PetType = await db.PetType.findOne({
-        where: {
-            id: _OBJECT.petTypeId,
-            live: true
-        }
-    })
+    // let PetType = await db.PetType.findOne({
+    //     where: {
+    //         id: _OBJECT.petTypeId,
+    //         live: true
+    //     }
+    // })
 
-    if(!PetType){
+    // if(!PetType){
 
-        let error = new Error("Pet type id not found!");
-        error.status = 404;
-        return {
-            DB_error: error
-        };
+    //     let error = new Error("Pet type id not found!");
+    //     error.status = 404;
+    //     return {
+    //         DB_error: error
+    //     };
 
-    }
+    // }
 
     let result = await db.Pet.create(_OBJECT);
 
@@ -152,48 +152,74 @@ exports.Update = async (_OBJECT, _ID) => {
 
     }
 
-    let PetType = await db.PetType.findOne({
-        where: {
-            id: _OBJECT.petTypeId,
-            live: true
-        }
-    })
+    // let PetType = await db.PetType.findOne({
+    //     where: {
+    //         id: _OBJECT.petTypeId,
+    //         live: true
+    //     }
+    // })
 
-    if(!PetType){
+    // if(!PetType){
 
-        let error = new Error("Pet type id not found!");
-        error.status = 404;
+    //     let error = new Error("Pet type id not found!");
+    //     error.status = 404;
+    //     return {
+    //         DB_error: error
+    //     };
+
+    // }
+
+    // if(_OBJECT.image != 'null' && _OBJECT.image != null && _OBJECT.image != ''){
+    //     Pet.image = _OBJECT.image;
+    // }
+
+    if(_OBJECT.image != 'null' && _OBJECT.image != null && _OBJECT.image != ''){
+        delete _OBJECT.image;
+    }
+
+    try{
+
+        let result = await Pet.update( _OBJECT );
+        return {
+            DB_value: result
+        };
+
+    }
+    catch( Excp ){
+
+        console.log(Excp);
+
+        let error = new Error("");
+        error.status = 500;
         return {
             DB_error: error
         };
 
     }
 
-    if(_OBJECT.image != 'null' && _OBJECT.image != null && _OBJECT.image != ''){
-        Pet.image = _OBJECT.image;
-    }
+    // console.log(_OBJECT);
 
-    Pet.name = _OBJECT.name;
-    Pet.color = _OBJECT.color;
-    Pet.pet = _OBJECT.pet;
-    Pet.age = _OBJECT.age;
-    Pet.gender = _OBJECT.gender;
-    Pet.dob = _OBJECT.dob;
-    Pet.patientId = _OBJECT.patientId;
-    Pet.patientId = _OBJECT.petTypeId;
-    Pet.description = _OBJECT.description;
-    Pet.updatedBy = _OBJECT.updatedBy;
+    // Pet.name = _OBJECT.name;
+    // Pet.color = _OBJECT.color;
+    // Pet.pet = _OBJECT.pet;
+    // Pet.age = _OBJECT.age;
+    // Pet.gender = _OBJECT.gender;
+    // Pet.dob = _OBJECT.dob;
+    // Pet.patientId = _OBJECT.patientId;
+    // Pet.petTypeId = _OBJECT.petTypeId;
+    // Pet.description = _OBJECT.description;
+    // Pet.updatedBy = _OBJECT.updatedBy;
 
-    let result = await Pet.save();
+    // let result = await Pet.save();
 
-    delete result.dataValues.createdBy;
-    delete result.dataValues.updatedBy;
-    delete result.dataValues.updatedAt;
-    delete result.dataValues.live;
+    // delete result.dataValues.createdBy;
+    // delete result.dataValues.updatedBy;
+    // delete result.dataValues.updatedAt;
+    // delete result.dataValues.live;
 
-    return {
-        DB_value: result
-    };
+    // return {
+    //     DB_value: result
+    // };
 
 
 }

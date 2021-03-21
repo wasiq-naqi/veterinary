@@ -48,7 +48,7 @@ module.exports = {
     },
     petTypeId : {
       type: Sequelize.INTEGER(11),
-      allowNull: false,
+      allowNull: true,
     },
     createdBy: {
       type: Sequelize.INTEGER(11),

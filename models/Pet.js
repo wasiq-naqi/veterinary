@@ -45,7 +45,7 @@ module.exports = (sequelize, Datatypes) => {
       },
       petTypeId : {
         type: Datatypes.INTEGER(11),
-        allowNull: false,
+        allowNull: true,
       },
       createdBy: {
         type: Datatypes.INTEGER(11),

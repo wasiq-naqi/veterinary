@@ -9,7 +9,7 @@ const Schema = Joi.object({
     prescription: Joi.string().required(),
     description: Joi.string().allow('', null),
     recomendation: Joi.string().allow('', null),
-    followUp: Joi.number().allow('', null)
+    followUp: Joi.date().iso().allow('', null)
 });
 
 const SchemaTreatmentsByPetsId = Joi.object({

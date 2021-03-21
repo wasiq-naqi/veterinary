@@ -12,7 +12,7 @@ const Schema = Joi.object({
     age: Joi.number().allow('', null),
     dob: Joi.date().allow('', null),
     patientId: Joi.number().required(),
-    petTypeId: Joi.number().required(),
+    petTypeId: Joi.number().allow('', null),
 });
 
 const PatientPetsSchema = Joi.object({

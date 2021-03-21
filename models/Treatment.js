@@ -32,7 +32,7 @@ module.exports = (sequelize, Datatypes) => {
         allowNull: true,
       },
       followUp:{
-        type: Datatypes.INTEGER(),
+        type: Datatypes.DATE,
         allowNull: true,
       },
       createdBy: {

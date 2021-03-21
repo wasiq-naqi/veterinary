@@ -95,7 +95,6 @@ exports.Create = async (_OBJECT) => {
         }
     });
 
-
     if(!Order){
 
         let error = new Error("Order not found!");
@@ -110,6 +109,7 @@ exports.Create = async (_OBJECT) => {
         attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
         where: {
             id: _OBJECT.petId,
+            patientId: Order.dataValues.patientId,
             live: true
         }
     });
@@ -117,7 +117,7 @@ exports.Create = async (_OBJECT) => {
 
     if(!Pet){
 
-        let error = new Error("Pet not found!");
+        let error = new Error("Pet not found or not associate with the visitor.");
         error.status = 404;
         return {
             DB_error: error
@@ -126,6 +126,41 @@ exports.Create = async (_OBJECT) => {
     }
 
     let result = await db.Treatment.create(_OBJECT);
+
+    try{
+
+        if( _OBJECT.followUp ){
+
+            // creating entry for notification
+            db.Notification.create({
+                patientId: Order.dataValues.patientId,
+                orderId: _OBJECT.orderId,
+                doctorId: _OBJECT.createdBy,
+                date: _OBJECT.followUp,
+                createdBy: _OBJECT.createdBy
+            });
+
+            // creating entry for follow up
+            db.FollowUp.create({
+                patientId: Order.dataValues.patientId,
+                orderId: _OBJECT.orderId,
+                doctorId: _OBJECT.createdBy,
+                date: _OBJECT.followUp,
+                createdBy: _OBJECT.createdBy
+            });
+        }
+
+    }
+    catch( Excp ){
+
+        let error = new Error("");
+        error.status = 500;
+        return {
+            DB_error: error
+        };
+
+    }
+    
 
     delete result.dataValues.createdBy;
     delete result.dataValues.updatedBy;

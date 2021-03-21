@@ -87,6 +87,21 @@ exports.Get = async function ( _ID ) {
 
 exports.Create = async (_OBJECT) => {
 
+    let emirateId = await db.Patient.findOne({
+        where: {
+            emiratesId: _OBJECT.emiratesId,
+            live: true
+        }
+    });
+
+    if(emirateId){
+        let error = new Error(`Patient already exist having emirates id: '${_OBJECT.emiratesId}'`);
+        error.status = 400;
+        return {
+            DB_error: error
+        };
+    }
+
     let result = await db.Patient.create(_OBJECT);
 
     delete result.dataValues.createdBy;
@@ -111,10 +126,9 @@ exports.Update = async (_OBJECT, _ID) => {
         }
     });
 
-
     if(!Patient){
 
-        let error = new Error("Patient not found!");
+        let error = new Error("Patient not found.");
         error.status = 404;
         return {
             DB_error: error
@@ -122,29 +136,76 @@ exports.Update = async (_OBJECT, _ID) => {
 
     }
 
-    if(_OBJECT.image != 'null' && _OBJECT.image != null && _OBJECT.image != ''){
-        Patient.image = _OBJECT.image;
+    let emirateId = await db.Patient.findOne({
+        where: {
+            emiratesId: _OBJECT.emiratesId,
+            id: {
+                [db.Sequelize.Op.ne]: _ID
+            },
+            live: true
+        }
+    });
+
+    console.log(emirateId, _OBJECT.emiratesId);
+
+    if(emirateId){
+        let error = new Error(`Patient already exist having emirates id: '${_OBJECT.emiratesId}'`);
+        error.status = 400;
+        return {
+            DB_error: error
+        };
     }
 
-    Patient.emiratesId = _OBJECT.emiratesId;
-    Patient.name = _OBJECT.name;
-    Patient.email = _OBJECT.email;
-    Patient.gender = _OBJECT.gender;
-    Patient.contact = _OBJECT.contact;
-    Patient.dob = _OBJECT.dob;
-    Patient.address = _OBJECT.address;
-    Patient.updatedBy = _OBJECT.updatedBy;
+    if(_OBJECT.image == 'null' || _OBJECT.image == null || _OBJECT.image == ''){
+        delete _OBJECT.image;
+    }
 
-    let result = await Patient.save();
+    try{
 
-    delete result.dataValues.createdBy;
-    delete result.dataValues.updatedBy;
-    delete result.dataValues.updatedAt;
-    delete result.dataValues.live;
+        let result = await Patient.update(_OBJECT);
 
-    return {
-        DB_value: result
-    };
+        // let result = await db.Patient.findOne({
+        //     attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        //     where: {
+        //         id: _ID,
+        //         live: true
+        //     }
+        // });
+
+        // delete result.dataValues.createdBy;
+        // delete result.dataValues.updatedBy;
+        // delete result.dataValues.updatedAt;
+        // delete result.dataValues.live;
+
+        return {
+            DB_value: result
+        };
+
+    }
+    catch( Excp ){
+
+        console.log(Excp);
+        
+        let error = new Error("");
+        error.status = 500;
+        return {
+            DB_error: error
+        };
+
+    }
+
+    // Patient.emiratesId = _OBJECT.emiratesId;
+    // Patient.name = _OBJECT.name;
+    // Patient.email = _OBJECT.email;
+    // Patient.gender = _OBJECT.gender;
+    // Patient.contact = _OBJECT.contact;
+    // Patient.dob = _OBJECT.dob;
+    // Patient.address = _OBJECT.address;
+    // Patient.updatedBy = _OBJECT.updatedBy;
+
+    // let result = await Patient.save();
+
+    
 
 
 }

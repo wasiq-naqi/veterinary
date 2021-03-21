@@ -1,6 +1,6 @@
 
 module.exports = (sequelize, Datatypes) => {
-    return sequelize.define('Order', {
+    return sequelize.define('FollowUp', {
       id : {
         type: Datatypes.INTEGER(11),
         allowNull: false,
@@ -11,25 +11,22 @@ module.exports = (sequelize, Datatypes) => {
         type: Datatypes.INTEGER(11),
         allowNull: false,
       },
-      description : {
-        type: Datatypes.STRING(500),
-        allowNull: true,
-      },
-      appointment:{
-        type: Datatypes.STRING(),
-        allowNull: false,
-      },
-      checkUpPrice: {
+      orderId:{
         type: Datatypes.INTEGER(11),
         allowNull: false,
       },
-      price: {
+      doctorId:{
         type: Datatypes.INTEGER(11),
         allowNull: false,
       },
-      followUp:{
+      date:{
+        type: Datatypes.DATE,
+        allowNull: false,
+      },
+      isFollowUpDone:{
         type: Datatypes.BOOLEAN,
-        allowNull: false
+        defaultValue: false,
+        allowNull: false,
       },
       createdBy: {
         type: Datatypes.INTEGER(11),
@@ -44,7 +41,8 @@ module.exports = (sequelize, Datatypes) => {
         allowNull: false,
         defaultValue: true    
       }
-    },{ 
-      tableName: 'orders'
+    }
+    ,{ 
+      tableName: 'follow-ups'
     });
 }

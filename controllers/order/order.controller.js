@@ -13,6 +13,7 @@ const Schema = Joi.object({
     description: Joi.string().required(),
     itemIds: Joi.array().required().items( Joi.number() ),
     packageIds: Joi.array().required().items( Joi.number() ),
+    followUp: Joi.boolean().required()
 });
 
 let SchemaStatus = Joi.object({
