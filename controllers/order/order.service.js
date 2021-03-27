@@ -2,10 +2,10 @@ var db = require('../../models');
 const { Pagination } = require('../../functions');
 const { Roles } = require('../../utils/permissions');
 
-exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH, _DATE, _APPOINTMENT ) {
+exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH, _DATE, _APPOINTMENT, _CHECKUP ) {
     
     let where = {
-        live: true
+        live: true,
     }
 
     if(_SEARCH){
@@ -60,6 +60,11 @@ exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH, _DATE, _AP
             paranoid: false, 
             required: false,
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            include: {
+                as: 'Item',
+                model: db.Item,
+                attributes: ['name', 'description', 'active', 'price', 'petTypeId', 'serviceId']
+            }
         },
         {
             as: 'Packages',
@@ -67,6 +72,11 @@ exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH, _DATE, _AP
             paranoid: false, 
             required: false,
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            include: {
+                as: 'Package',
+                model: db.Package,
+                attributes: ['name', 'description', 'active', 'price', 'petTypeId', 'serviceId']
+            }
         },
         {
             as: 'Treatments',
@@ -84,10 +94,22 @@ exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH, _DATE, _AP
                     as: 'Doctor',
                     model: db.User,
                     attributes: ['id', 'image', 'name'],
+                },
+                {
+                    as: 'Recomendations',
+                    model: db.TreatmentRecomendationItem,
+                    attributes: ["id", "itemId", "price"],
+                    include: [
+                        {
+                            as: 'Item',
+                            model: db.Item,
+                            attributes: ["name", "description", "price"],
+                        }
+                    ]
                 }
             ],
             where: {
-                live: true
+                live: true,
             }
         },
     ]
@@ -124,6 +146,18 @@ exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH, _DATE, _AP
                         as: 'Doctor',
                         model: db.User,
                         attributes: ['id', 'image', 'name'],
+                    },
+                    {
+                        as: 'Recomendations',
+                        model: db.TreatmentRecomendationItem,
+                        attributes: ["id", "itemId", "price"],
+                        include: [
+                            {
+                                as: 'Item',
+                                model: db.Item,
+                                attributes: ["name", "description", "price"],
+                            }
+                        ]
                     }
                 ],
                 where: {
@@ -137,6 +171,12 @@ exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH, _DATE, _AP
 
         // Remove Price
         association['attributes'] = { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live', 'price'] };
+    }
+
+    if( _CHECKUP == false || _CHECKUP == 'false' ) where['$Treatments.id$'] = null;
+    if( _CHECKUP == true || _CHECKUP == 'true' ){
+        let treatmentAssociationIndex = association.include.findIndex( e => e.as == 'Treatments' );
+        association.include[treatmentAssociationIndex].required = true;
     }
 
     let result = await Pagination(_PAGE, _LIMIT, db.Order, association);
@@ -167,6 +207,11 @@ exports.Get = async function ( _ID, _USER ) {
             paranoid: false, 
             required: false,
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            include: {
+                as: 'Item',
+                model: db.Item,
+                attributes: ['name', 'description', 'active', 'price', 'petTypeId', 'serviceId']
+            }
         },
         {
             as: 'Packages',
@@ -174,6 +219,11 @@ exports.Get = async function ( _ID, _USER ) {
             paranoid: false, 
             required: false,
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            include: {
+                as: 'Package',
+                model: db.Package,
+                attributes: ['name', 'description', 'active', 'price', 'petTypeId', 'serviceId']
+            }
         },
         {
             as: 'Treatments',
@@ -183,9 +233,26 @@ exports.Get = async function ( _ID, _USER ) {
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
             include: [
                 {
+                    as: 'Pet',
+                    model: db.Pet,
+                    attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                },
+                {
                     as: 'Doctor',
                     model: db.User,
                     attributes: ['id', 'image', 'name'],
+                },
+                {
+                    as: 'Recomendations',
+                    model: db.TreatmentRecomendationItem,
+                    attributes: ["id", "itemId", "price"],
+                    include: [
+                        {
+                            as: 'Item',
+                            model: db.Item,
+                            attributes: ["name", "description", "price"],
+                        }
+                    ]
                 }
             ],
             where: {
@@ -286,11 +353,11 @@ exports.Create = async ( _OBJECT ) => {
     }
 
     // Validating Items and calculating prices
-    for(let item of _OBJECT['itemIds']){
+    for(let item of _OBJECT['items']){
 
         let Item = await db.Item.findOne({
             where: {
-                id: item,
+                id: item.itemId,
                 live: true
             },
             raw: true
@@ -306,17 +373,18 @@ exports.Create = async ( _OBJECT ) => {
 
         }
 
-        orderPrice += +Item.price;
-        items[item] = Item; 
+        orderPrice += ( +Item.price * +item.quantity );
+        items[item.itemId] = Item; 
+        items[item.itemId].quantity = item.quantity; 
         
     }
 
     // Validating Packages and calculating prices
-    for(let item of _OBJECT['packageIds']){
+    for(let item of _OBJECT['packages']){
 
         let Item = await db.Package.findOne({
             where: {
-                id: item,
+                id: item.packageId,
                 live: true
             },
             raw: true
@@ -332,9 +400,10 @@ exports.Create = async ( _OBJECT ) => {
 
         }
 
-        orderPrice += +Item.price;
-        packages[item] = Item; 
-
+        orderPrice += ( +Item.price * +item.quantity );
+        packages[item.packageId] = Item; 
+        packages[item.packageId].quantity = item.quantity; 
+        
     }
 
     // adding checkup price
@@ -354,21 +423,25 @@ exports.Create = async ( _OBJECT ) => {
     let Order = await db.Order.create(orderObject);
 
     if(Order){
-        for(let item of _OBJECT['itemIds']){
+        
+        for(let item of _OBJECT['items']){
 
             await db.OrderItem.create({
-                itemId: item,
-                price: items[item].price,
+                itemId: item.itemId,
+                price: items[item.itemId].price,
+                quantity: items[item.itemId].quantity,
                 orderId: Order.dataValues.id,
                 createdBy: _OBJECT.createdBy,
             });
             
         }
-        for(let item of _OBJECT['packageIds']){
+
+        for(let item of _OBJECT['packages']){
 
             await db.OrderPackage.create({
-                packageId: item,
-                price: packages[item].price,
+                packageId: item.packageId,
+                price: packages[item.packageId].price,
+                quantity: packages[item.packageId].quantity,
                 orderId: Order.dataValues.id,
                 createdBy: _OBJECT.createdBy,
             });
@@ -424,7 +497,10 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
     let items = {};
     let packages = {};
 
-    let itemsToAdd = [], packagesToAdd = [];
+    let itemsToAdd = [],
+        itemsToUpdate = [],
+        packagesToAdd = [],
+        packagesToUpdate = [];
 
     if( _ID ){
 
@@ -514,14 +590,16 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
     let plainOrder = OrderInstance.get({ plain: true });
 
     // Validating Items and calculating prices
-    for(let item of _OBJECT['itemIds']){
+    for(let item of _OBJECT['items']){
 
-        let present = plainOrder.Items.find( e => e.itemId == item );
-        if( present ) continue;
+        let quantityDifference = +item.quantity;
+        let present = plainOrder.Items.find( e => e.itemId == item.itemId );
+        if( present && present.quantity >= item.quantity ) continue;
+        if( present && present.quantity < item.quantity ) quantityDifference = item.quantity - present.quantity;
 
         let Item = await db.Item.findOne({
             where: {
-                id: item,
+                id: item.itemId,
                 live: true
             },
             raw: true
@@ -537,21 +615,28 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
 
         }
 
-        orderPrice += +Item.price;
-        items[item] = Item;
-        itemsToAdd.push(item);
+        orderPrice += ( +Item.price * quantityDifference );
+        items[item.itemId] = Item;
+        items[item.itemId].quantity = item.quantity;
+
+        if( !present ) itemsToAdd.push(item.itemId);
+        else itemsToUpdate.push({ orderItemId: present.id, itemId: item.itemId });
+        
+        
         
     }
 
     // Validating Packages and calculating prices
-    for(let item of _OBJECT['packageIds']){
+    for(let item of _OBJECT['packages']){
 
-        let present = plainOrder.Packages.find( e => e.packageId == item );
-        if( present ) continue;
+        let quantityDifference = +item.quantity;
+        let present = plainOrder.Packages.find( e => e.packageId == item.packageId );
+        if( present && present.quantity >= item.quantity ) continue;
+        if( present && present.quantity < item.quantity ) quantityDifference = item.quantity - present.quantity;
 
         let Item = await db.Package.findOne({
             where: {
-                id: item,
+                id: item.packageId,
                 live: true
             },
             raw: true
@@ -567,29 +652,23 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
 
         }
 
-        orderPrice += +Item.price;
-        packages[item] = Item;
-        packagesToAdd.push(item);
+        orderPrice += ( +Item.price * quantityDifference ) ;
+        packages[item.packageId] = Item;
+        packages[item.packageId].quantity = item.quantity;
+
+        if( !present ) packagesToAdd.push(item.packageId);
+        else packagesToUpdate.push({ orderPackageId: present.id, packageId: item.packageId });
 
     }
-
-    console.log('---------------------------------------');
-    console.log('Order Price:', orderPrice);
-    console.log('Items To Add:', itemsToAdd);
-    console.log('Packages To Add:', packagesToAdd);
     
     // Validating Price
     if( _OBJECT.checkUpPrice != plainOrder.checkUpPrice ){
-        console.log('Diff Price');
         _OBJECT.price = plainOrder.price - plainOrder.checkUpPrice;
         _OBJECT.price += (_OBJECT.checkUpPrice + orderPrice);
     }
     else{
-        console.log('Same Price');
         _OBJECT.price = plainOrder.price + orderPrice;
     }
-
-    console.log('Object Price:',  _OBJECT.price, plainOrder.price, orderPrice);
 
     try{
 
@@ -600,10 +679,20 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
             await db.OrderItem.create({
                 itemId: item,
                 price: items[item].price,
+                quantity: items[item].quantity,
                 orderId: _ID,
                 createdBy: _OBJECT.createdBy,
             });
             
+        }
+
+        for( let instance of itemsToUpdate ){
+            
+            await db.OrderItem.update(
+                { quantity: items[instance.itemId].quantity},
+                { where:{ id: instance.orderItemId } }
+            );
+
         }
 
         for(let item of packagesToAdd ){
@@ -611,10 +700,20 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
             await db.OrderPackage.create({
                 packageId: item,
                 price: packages[item].price,
+                quantity: packages[item].quantity,
                 orderId: _ID,
                 createdBy: _OBJECT.createdBy,
             });
             
+        }
+
+        for( let instance of packagesToUpdate ){
+            
+            await db.OrderPackage.update(
+                { quantity: packages[instance.packageId].quantity },
+                { where:{ id: instance.orderPackageId } }
+            );
+
         }
 
         let where = {
@@ -942,7 +1041,7 @@ exports.GetOrderStatus = async function ( _OBJECT ) {
 
 }
 
-exports.getOrdersByPatient = async function ( _PATIENT, _USER, _DATE, _APPOINTMENT ) {
+exports.getOrdersByPatient = async function ( _PATIENT, _USER, _DATE, _APPOINTMENT, _CHECKUP ) {
     
     let Patient = await db.Patient.findOne({
         attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
@@ -992,6 +1091,11 @@ exports.getOrdersByPatient = async function ( _PATIENT, _USER, _DATE, _APPOINTME
             paranoid: false, 
             required: false,
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            include: {
+                as: 'Item',
+                model: db.Item,
+                attributes: ['name', 'description', 'active', 'price', 'petTypeId', 'serviceId']
+            }
         },
         {
             as: 'Packages',
@@ -999,6 +1103,11 @@ exports.getOrdersByPatient = async function ( _PATIENT, _USER, _DATE, _APPOINTME
             paranoid: false, 
             required: false,
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            include: {
+                as: 'Package',
+                model: db.Package,
+                attributes: ['name', 'description', 'active', 'price', 'petTypeId', 'serviceId']
+            }
         },
         {
             as: 'Treatments',
@@ -1016,6 +1125,18 @@ exports.getOrdersByPatient = async function ( _PATIENT, _USER, _DATE, _APPOINTME
                     as: 'Doctor',
                     model: db.User,
                     attributes: ['id', 'image', 'name'],
+                },
+                {
+                    as: 'Recomendations',
+                    model: db.TreatmentRecomendationItem,
+                    attributes: ["id", "itemId", "price"],
+                    include: [
+                        {
+                            as: 'Item',
+                            model: db.Item,
+                            attributes: ["name", "description", "price"],
+                        }
+                    ]
                 }
             ],
             where: {
@@ -1029,7 +1150,8 @@ exports.getOrdersByPatient = async function ( _PATIENT, _USER, _DATE, _APPOINTME
         where,
         subQuery: false,
         distinct: true,
-        attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] }
+        attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        order: [ ['id', 'DESC'] ],
     };
 
     // Restrict doctor from getting order details
@@ -1051,6 +1173,18 @@ exports.getOrdersByPatient = async function ( _PATIENT, _USER, _DATE, _APPOINTME
                         as: 'Doctor',
                         model: db.User,
                         attributes: ['id', 'image', 'name'],
+                    },
+                    {
+                        as: 'Recomendations',
+                        model: db.TreatmentRecomendationItem,
+                        attributes: ["id", "itemId", "price"],
+                        include: [
+                            {
+                                as: 'Item',
+                                model: db.Item,
+                                attributes: ["name", "description", "price"],
+                            }
+                        ]
                     }
                 ],
                 where: {
@@ -1066,7 +1200,11 @@ exports.getOrdersByPatient = async function ( _PATIENT, _USER, _DATE, _APPOINTME
         association['attributes'] = { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live', 'price'] };
     }
 
-    // console.log(Patient);
+    if( _CHECKUP == false || _CHECKUP == 'false' ) where['$Treatments.id$'] = null;
+    if( _CHECKUP == true || _CHECKUP == 'true' ){
+        let treatmentAssociationIndex = association.include.findIndex( e => e.as == 'Treatments' );
+        association.include[treatmentAssociationIndex].required = true;
+    }
 
     let result = await db.Order.findAndCountAll(association);
     result['Patient'] = Patient;
@@ -1076,7 +1214,7 @@ exports.getOrdersByPatient = async function ( _PATIENT, _USER, _DATE, _APPOINTME
     };
 }
 
-exports.getOrdersByPet = async function ( _PET, _USER, _DATE, _APPOINTMENT ) {
+exports.getOrdersByPet = async function ( _PET, _USER, _DATE, _APPOINTMENT, _CHECKUP ) {
 
     let Pet = await db.Pet.findOne({
         attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
@@ -1144,6 +1282,11 @@ exports.getOrdersByPet = async function ( _PET, _USER, _DATE, _APPOINTMENT ) {
             paranoid: false, 
             required: false,
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            include: {
+                as: 'Item',
+                model: db.Item,
+                attributes: ['name', 'description', 'active', 'price', 'petTypeId', 'serviceId']
+            }
         },
         {
             as: 'Packages',
@@ -1151,6 +1294,11 @@ exports.getOrdersByPet = async function ( _PET, _USER, _DATE, _APPOINTMENT ) {
             paranoid: false, 
             required: false,
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            include: {
+                as: 'Package',
+                model: db.Package,
+                attributes: ['name', 'description', 'active', 'price', 'petTypeId', 'serviceId']
+            }
         },
         {
             as: 'Treatments',
@@ -1172,6 +1320,18 @@ exports.getOrdersByPet = async function ( _PET, _USER, _DATE, _APPOINTMENT ) {
                     as: 'Doctor',
                     model: db.User,
                     attributes: ['id', 'image', 'name'],
+                },
+                {
+                    as: 'Recomendations',
+                    model: db.TreatmentRecomendationItem,
+                    attributes: ["id", "itemId", "price"],
+                    include: [
+                        {
+                            as: 'Item',
+                            model: db.Item,
+                            attributes: ["name", "description", "price"],
+                        }
+                    ]
                 }
             ],
             where: {
@@ -1185,11 +1345,13 @@ exports.getOrdersByPet = async function ( _PET, _USER, _DATE, _APPOINTMENT ) {
         where,
         subQuery: false,
         distinct: true,
-        attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] }
+        attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        order: [ ['id', 'DESC'] ],
     };
 
     // Restrict doctor from getting order details
     if(_USER.roleId == Roles['Doctor']){
+        
         association.include = [
             {
                 as: 'Treatments',
@@ -1211,6 +1373,18 @@ exports.getOrdersByPet = async function ( _PET, _USER, _DATE, _APPOINTMENT ) {
                         as: 'Doctor',
                         model: db.User,
                         attributes: ['id', 'image', 'name'],
+                    },
+                    {
+                        as: 'Recomendations',
+                        model: db.TreatmentRecomendationItem,
+                        attributes: ["id", "itemId", "price"],
+                        include: [
+                            {
+                                as: 'Item',
+                                model: db.Item,
+                                attributes: ["name", "description", "price"],
+                            }
+                        ]
                     }
                 ],
                 where: {
@@ -1226,7 +1400,11 @@ exports.getOrdersByPet = async function ( _PET, _USER, _DATE, _APPOINTMENT ) {
         association['attributes'] = { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live', 'price'] };
     }
 
-    // console.log(Patient);
+    if( _CHECKUP == false || _CHECKUP == 'false' ) where['$Treatments.id$'] = null;
+    if( _CHECKUP == true || _CHECKUP == 'true' ){
+        let treatmentAssociationIndex = association.include.findIndex( e => e.as == 'Treatments' );
+        association.include[treatmentAssociationIndex].required = true;
+    }
 
     let result = await db.Order.findAndCountAll(association);
     result['Patient'] = Patient;

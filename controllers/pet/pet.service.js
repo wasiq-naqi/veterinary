@@ -173,7 +173,7 @@ exports.Update = async (_OBJECT, _ID) => {
     //     Pet.image = _OBJECT.image;
     // }
 
-    if(_OBJECT.image != 'null' && _OBJECT.image != null && _OBJECT.image != ''){
+    if(_OBJECT.image == 'null' || _OBJECT.image == null || _OBJECT.image == ''){
         delete _OBJECT.image;
     }
 

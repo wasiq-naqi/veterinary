@@ -18,6 +18,14 @@ module.exports = {
       type: Sequelize.STRING(),
       allowNull: false,
     },
+    breed : {
+      type: Sequelize.STRING(),
+      allowNull: true,
+    },
+    specie : {
+      type: Sequelize.STRING(),
+      allowNull: true,
+    },
     color : {
       type: Sequelize.STRING(),
       allowNull: true,
@@ -40,6 +48,10 @@ module.exports = {
     },
     dob : {
       type: Sequelize.DATE(),
+      allowNull: true,
+    },
+    microchip: {
+      type: Sequelize.BOOLEAN,
       allowNull: true,
     },
     patientId : {

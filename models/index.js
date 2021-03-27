@@ -54,9 +54,11 @@ sequelize.authenticate()
     db.Pet.belongsTo(db.Patient, { foreignKey: 'patientId'});
     db.Patient.hasMany(db.Pet, { as: 'Pets', foreignKey: 'patientId'});
 
+    db.OrderItem.belongsTo(db.Item, { as: 'Item', foreignKey: 'itemId'});
     db.OrderItem.belongsTo(db.Order, { foreignKey: 'orderId'});
     db.Order.hasMany(db.OrderItem, { as: 'Items', foreignKey: 'orderId'});
 
+    db.OrderPackage.belongsTo(db.Package, { foreignKey: 'packageId'});
     db.OrderPackage.belongsTo(db.Order, { foreignKey: 'orderId'});
     db.Order.hasMany(db.OrderPackage, { as: 'Packages', foreignKey: 'orderId'});
     
@@ -68,6 +70,11 @@ sequelize.authenticate()
     db.Treatment.belongsTo(db.Order, { foreignKey: 'orderId'});
     db.Treatment.belongsTo(db.User, { as: 'Doctor', foreignKey: 'createdBy'});
     db.Treatment.belongsTo(db.Pet, { as: 'Pet', foreignKey: 'petId'});
+
+    // db.Treatment.belongsTo(db.TreatmentRecomendationItem,  { as: '', foreignKey: 'treatmentId'});
+    db.Treatment.hasMany(db.TreatmentRecomendationItem , { as: 'Recomendations', foreignKey: 'treatmentId'} );
+    db.TreatmentRecomendationItem.belongsTo(db.Item, { as: 'Item', foreignKey: 'itemId' });
+
 
     db.Item.belongsTo(db.PetType, { as: 'PetType', foreignKey: 'petTypeId'});
     db.Item.belongsTo(db.Service, { as: 'Service', foreignKey: 'serviceId'});

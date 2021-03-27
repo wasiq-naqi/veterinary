@@ -1,6 +1,6 @@
 
 module.exports = (sequelize, Datatypes) => {
-    return sequelize.define('OrderItem', {
+    return sequelize.define('TreatmentRecomendationItem', {
       id : {
         type: Datatypes.INTEGER(11),
         allowNull: false,
@@ -15,11 +15,11 @@ module.exports = (sequelize, Datatypes) => {
         type: Datatypes.INTEGER(11),
         allowNull: false,
       },
-      price:{
+      treatmentId : {
         type: Datatypes.INTEGER(11),
         allowNull: false,
       },
-      quantity:{
+      price:{
         type: Datatypes.INTEGER(11),
         allowNull: false,
       },
@@ -38,6 +38,6 @@ module.exports = (sequelize, Datatypes) => {
       }
     }
     ,{ 
-      tableName: 'order_items'
+      tableName: 'treatment_recomendation_items'
     });
 }

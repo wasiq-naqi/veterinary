@@ -6,6 +6,8 @@ const Schema = Joi.object({
     image: Joi.string().allow(null, ''),
     name: Joi.string().required(),
     pet: Joi.string().allow('', null),
+    breed: Joi.string().allow('', null),
+    specie: Joi.string().allow('', null),
     color: Joi.string().allow('', null),
     description: Joi.string().allow('', null),
     gender: Joi.string().allow('', null),
@@ -13,6 +15,7 @@ const Schema = Joi.object({
     dob: Joi.date().allow('', null),
     patientId: Joi.number().required(),
     petTypeId: Joi.number().allow('', null),
+    microchip: Joi.boolean().allow('', null),
 });
 
 const PatientPetsSchema = Joi.object({

@@ -15,6 +15,14 @@ module.exports = (sequelize, Datatypes) => {
         type: Datatypes.STRING(),
         allowNull: false,
       },
+      breed : {
+        type: Datatypes.STRING(),
+        allowNull: true,
+      },
+      specie : {
+        type: Datatypes.STRING(),
+        allowNull: true,
+      },
       color : {
         type: Datatypes.STRING(),
         allowNull: true,
@@ -37,6 +45,10 @@ module.exports = (sequelize, Datatypes) => {
       },
       dob : {
         type: Datatypes.DATE(),
+        allowNull: true,
+      },
+      microchip: {
+        type: Datatypes.BOOLEAN,
         allowNull: true,
       },
       patientId : {

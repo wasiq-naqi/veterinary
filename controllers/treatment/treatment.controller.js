@@ -8,7 +8,7 @@ const Schema = Joi.object({
     statement: Joi.string().required(),
     prescription: Joi.string().required(),
     description: Joi.string().allow('', null),
-    recomendation: Joi.string().allow('', null),
+    recomendations: Joi.array().required().items( Joi.number() ),
     followUp: Joi.date().iso().allow('', null)
 });
 

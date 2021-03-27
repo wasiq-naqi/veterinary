@@ -22,6 +22,10 @@ module.exports = {
       type: Sequelize.INTEGER(11),
       allowNull: false,
     },
+    quantity:{
+      type: Sequelize.INTEGER(11),
+      allowNull: false,
+    },
     createdBy: {
       type: Sequelize.INTEGER(11),
       allowNull: true,

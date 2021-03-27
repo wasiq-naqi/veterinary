@@ -17,9 +17,7 @@ module.exports = async function( pageNo, pageSize, model, include = {}){
         offset: offset,
         attributes: { exclude: ['password', 'createdBy', 'updatedBy', 'updatedAt', 'live'] },
         where: { live: true },
-        order: [
-            ['id', 'DESC']
-        ],
+        order: [ ['id', 'DESC'] ],
     }
 
     Object.assign(conditions, include);

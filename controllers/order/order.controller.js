@@ -2,18 +2,27 @@ const Joi = require('@hapi/joi');
 const Service = require('./order.service');
 const { Errors } = require('../../functions');
 
-// let item = Joi.object().keys({
-//     itemId: Joi.string().required(),
-// });
-
 const Schema = Joi.object({
+
     patientId: Joi.number().required(),
     appointment: Joi.boolean().required(),
-    checkUpPrice: Joi.number().required(),
+    checkUpPrice: Joi.number().required().allow(0),
     description: Joi.string().required(),
-    itemIds: Joi.array().required().items( Joi.number() ),
-    packageIds: Joi.array().required().items( Joi.number() ),
+
+    // itemIds: Joi.array().required().items( Joi.number() ),
+    // packageIds: Joi.array().required().items( Joi.number() ),
+
+    items: Joi.array().required().items( Joi.object({
+        itemId: Joi.number().required(),
+        quantity: Joi.number().min(1).required(),
+    }) ),
+    packages: Joi.array().required().items( Joi.object({
+        packageId: Joi.number().required(),
+        quantity: Joi.number().min(1).required(),
+    }) ),
+
     followUp: Joi.boolean().required()
+    
 });
 
 let SchemaStatus = Joi.object({
@@ -29,12 +38,15 @@ let SchemaGetOrderStatus = Joi.object({
 exports.GetAll = async (req, res, next) => {
     
 
-    let { pageNo, pageSize, search, date, appointment } = req.query;
+    let { pageNo, pageSize, search, date, appointment, checkUp } = req.query;
 
     let { DB_error, DB_value } = await Service.getAllUsers(
         pageNo, pageSize, 
-        {userId: req.token.id, roleId: req.token.role.id}, 
-        search, date, appointment);
+        {
+            userId: req.token.id, 
+            roleId: req.token.role.id
+        }, 
+        search, date, appointment, checkUp );
 
     if(DB_error){
 
@@ -227,12 +239,12 @@ exports.GetOrdersByPatient = async (req, res, next) => {
         return Errors(res, error);
     }
 
-    let { date, appointment } = req.query;
+    let { date, appointment, checkUp } = req.query;
 
     let { DB_error, DB_value } = await Service.getOrdersByPatient(
         req.params.id, 
         {userId: req.token.id, roleId: req.token.role.id, labId: req.token.labId},
-        date, appointment
+        date, appointment, checkUp
         );
 
     if(DB_error){
@@ -253,12 +265,12 @@ exports.GetOrdersByPet = async (req, res, next) => {
         return Errors(res, error);
     }
 
-    let { date, appointment } = req.query;
+    let { date, appointment, checkUp } = req.query;
 
     let { DB_error, DB_value } = await Service.getOrdersByPet(
         req.params.id, 
         {userId: req.token.id, roleId: req.token.role.id, labId: req.token.labId},
-        date, appointment
+        date, appointment, checkUp
         );
 
     if(DB_error){

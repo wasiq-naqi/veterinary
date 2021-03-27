@@ -20,6 +20,18 @@ exports.GetAll = async function ( _PAGE, _LIMIT) {
             as: 'Pet',
             model: db.Pet,
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        },
+        {
+            as: 'Recomendations',
+            model: db.TreatmentRecomendationItem,
+            attributes: ["itemId", "price"],
+            include: [
+                {
+                    as: 'Item',
+                    model: db.Item,
+                    attributes: ["name", "description", "price"],
+                }
+            ]
         }
     ];
 
@@ -87,6 +99,8 @@ exports.Get = async function ( _ID ) {
 
 exports.Create = async (_OBJECT) => {
 
+    let items = {};
+
     let Order = await db.Order.findOne({
         attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
         where: {
@@ -125,9 +139,50 @@ exports.Create = async (_OBJECT) => {
 
     }
 
-    let result = await db.Treatment.create(_OBJECT);
+    let Treatment;
 
     try{
+
+        Treatment = await db.Treatment.create(_OBJECT);
+
+        // Validating Items and calculating prices
+        for(let item of _OBJECT['recomendations']){
+
+            let Item = await db.Item.findOne({
+                where: {
+                    id: item,
+                    live: true
+                },
+                raw: true
+            });
+
+            if(!Item){
+
+                let error = new Error(`Item does not exists having id '${item}'`);
+                error.status = 400;
+                return {
+                    DB_error: error
+                }; 
+
+            }
+
+            items[item] = Item; 
+            
+        }
+
+        // Inserting recomendations to treatment
+        for(let item of _OBJECT['recomendations']){
+
+            await db.TreatmentRecomendationItem.create({
+                treatmentId: Treatment.dataValues.id,
+                itemId: item,
+                price: items[item].price,
+                orderId: Order.dataValues.id,
+                createdBy: _OBJECT.createdBy,
+            });
+            
+        }
+
 
         if( _OBJECT.followUp ){
 
@@ -148,10 +203,12 @@ exports.Create = async (_OBJECT) => {
                 date: _OBJECT.followUp,
                 createdBy: _OBJECT.createdBy
             });
+
         }
 
     }
     catch( Excp ){
+        console.log( Excp );
 
         let error = new Error("");
         error.status = 500;
@@ -161,6 +218,28 @@ exports.Create = async (_OBJECT) => {
 
     }
     
+
+    let result = await db.Treatment.findOne({
+        attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        where: {
+            id: Treatment.dataValues.id,
+            live: true
+        },
+        include: [
+            {
+                as: 'Recomendations',
+                model: db.TreatmentRecomendationItem,
+                attributes: ["id", "itemId", "price"],
+                include: [
+                    {
+                        as: 'Item',
+                        model: db.Item,
+                        attributes: ["name", "description", "price"],
+                    }
+                ]
+            }
+        ]
+    });
 
     delete result.dataValues.createdBy;
     delete result.dataValues.updatedBy;
@@ -176,12 +255,22 @@ exports.Create = async (_OBJECT) => {
 
 exports.Update = async (_OBJECT, _ID) => {
 
+    let items = {};
+    let itemsToAdd = [];
+
     let Treatment = await db.Treatment.findOne({
         attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
         where: {
             id: _ID,
             live: true
-        }
+        },
+        include: [
+            {
+                as: 'Recomendations',
+                model: db.TreatmentRecomendationItem,
+                attributes: ["id", "itemId", "price"],
+            }
+        ]
     });
 
     if(!Treatment){
@@ -232,6 +321,8 @@ exports.Update = async (_OBJECT, _ID) => {
 
     }
 
+    let plainTreatment = Treatment.get({ plain: true });
+
     let Save = await db.Treatment.update(_OBJECT,{
         where: {
             id: _ID
@@ -246,11 +337,50 @@ exports.Update = async (_OBJECT, _ID) => {
             DB_error: error
         };
     }
-    // Treatment.petId = _OBJECT.petId;
-    // Treatment.statement = _OBJECT.statement;
-    // Treatment.prescription = _OBJECT.prescription;
-    // Treatment.description = _OBJECT.description;
-    // Treatment.updatedBy = _OBJECT.updatedBy;
+    
+    
+
+    // Validating Items and calculating prices
+    for(let item of _OBJECT['recomendations']){
+
+        let present = plainTreatment.Recomendations.find( e => e.itemId == item );
+        if( present ) continue;
+
+        let Item = await db.Item.findOne({
+            where: {
+                id: item,
+                live: true
+            },
+            raw: true
+        });
+
+        if(!Item){
+
+            let error = new Error(`Item does not exists having id '${item}'`);
+            error.status = 400;
+            return {
+                DB_error: error
+            }; 
+
+        }
+
+        items[item] = Item;
+        itemsToAdd.push(item); 
+        
+    }
+
+    // Inserting recomendations to treatment
+    for(let item of itemsToAdd){
+
+        await db.TreatmentRecomendationItem.create({
+            treatmentId: plainTreatment.id,
+            itemId: item,
+            price: items[item].price,
+            orderId: Order.dataValues.id,
+            createdBy: _OBJECT.createdBy,
+        });
+        
+    }
 
 
 
@@ -259,7 +389,21 @@ exports.Update = async (_OBJECT, _ID) => {
         where: {
             id: _ID,
             live: true
-        }
+        },
+        include: [
+            {
+                as: 'Recomendations',
+                model: db.TreatmentRecomendationItem,
+                attributes: ["id", "itemId", "price"],
+                include: [
+                    {
+                        as: 'Item',
+                        model: db.Item,
+                        attributes: ["name", "description", "price"],
+                    }
+                ]
+            }
+        ]
     });
 
     delete result.dataValues.createdBy;
@@ -333,11 +477,44 @@ exports.GetTreatmentsByPetsId = async function ( _OBJECT, _PAGE, _LIMIT ) {
     //     DB_value: Pets
     // };
 
+    let include = [
+        {
+            as: 'Order',
+            model: db.Order, // will create a left join
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            include: [
+                {
+                    as: 'Patient',
+                    model: db.Patient, // will create a left join
+                    attributes: { exclude: ['createdAt', 'createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                }
+            ]
+        },
+        {
+            as: 'Pet',
+            model: db.Pet,
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        },
+        {
+            as: 'Recomendations',
+            model: db.TreatmentRecomendationItem,
+            attributes: ["itemId", "price"],
+            include: [
+                {
+                    as: 'Item',
+                    model: db.Item,
+                    attributes: ["name", "description", "price"],
+                }
+            ]
+        }
+    ];
+
     let association = {
         where: {
             petId: _OBJECT['petId'],
             live: true
-        }
+        },
+        include
     }
 
     let result = await Pagination(_PAGE, _LIMIT, db.Treatment, association);
