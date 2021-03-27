@@ -561,6 +561,7 @@ exports.Update = async (_OBJECT, _ID) => {
         };
 
     }
+    
     catch( Excp ){
 
         console.log(Excp);
