@@ -3,12 +3,31 @@ const { Pagination } = require('../../functions');
 
 let modelName = 'Pet Type';
 
-exports.GetAll = async function ( _PAGE, _LIMIT) {
+exports.GetAll = async function ( _PAGE, _LIMIT, _SEARCH ) {
 
     let association = {
         where: {
             live: true
         }
+    }
+
+    if(_SEARCH){
+
+        let searchOf = `%${_SEARCH}%`;
+        association.where[db.Sequelize.Op.or]= [
+            { id: { [db.Sequelize.Op.like]: searchOf } },
+            { name: { [db.Sequelize.Op.like]: searchOf } },
+            { description: { [db.Sequelize.Op.like]: searchOf } },
+            // { active: { [db.Sequelize.Op.like]: booleanOf } },
+        ]
+
+        if(_SEARCH == 'true' || _SEARCH == true || _SEARCH == 'false' || _SEARCH == false){
+            let booleanOf = `%${(_SEARCH == 'false' || _SEARCH == false) ? 0 : 1}%`
+            association.where[db.Sequelize.Op.or].push({
+                active: { [db.Sequelize.Op.like]: booleanOf }
+            });
+        }
+
     }
 
     let result = await Pagination(_PAGE, _LIMIT, db.PetType, association);
@@ -19,13 +38,34 @@ exports.GetAll = async function ( _PAGE, _LIMIT) {
 
 }
 
-exports.GetEachAndEvery = async function () {
+exports.GetEachAndEvery = async function ( _SEARCH ) {
     
+    let where = {
+        live: true
+    }
+
+    if(_SEARCH){
+
+        let searchOf = `%${_SEARCH}%`;
+        where[db.Sequelize.Op.or]= [
+            { id: { [db.Sequelize.Op.like]: searchOf } },
+            { name: { [db.Sequelize.Op.like]: searchOf } },
+            { description: { [db.Sequelize.Op.like]: searchOf } },
+            // { active: { [db.Sequelize.Op.like]: booleanOf } },
+        ]
+
+        if(_SEARCH == 'true' || _SEARCH == true || _SEARCH == 'false' || _SEARCH == false){
+            let booleanOf = `%${(_SEARCH == 'false' || _SEARCH == false) ? 0 : 1}%`
+            where[db.Sequelize.Op.or].push({
+                active: { [db.Sequelize.Op.like]: booleanOf }
+            });
+        }
+
+    }
+
     let Response = await db.PetType.findAll({
         attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-        where: {
-            live: true
-        },
+        where,
         order: [
             ['id', 'DESC']
         ]
@@ -36,21 +76,42 @@ exports.GetEachAndEvery = async function () {
     };
 }
 
-exports.GetAllActive = async function () {
+exports.GetAllActive = async function ( _SEARCH ) {
     
-    let PonticDesign = await db.PetType.findAll({
+    let where = {
+        live: true,
+        active: true
+    }
+
+    if(_SEARCH){
+
+        let searchOf = `%${_SEARCH}%`;
+        where[db.Sequelize.Op.or]= [
+            { id: { [db.Sequelize.Op.like]: searchOf } },
+            { name: { [db.Sequelize.Op.like]: searchOf } },
+            { description: { [db.Sequelize.Op.like]: searchOf } },
+            // { active: { [db.Sequelize.Op.like]: booleanOf } },
+        ]
+
+        if(_SEARCH == 'true' || _SEARCH == true || _SEARCH == 'false' || _SEARCH == false){
+            let booleanOf = `%${(_SEARCH == 'false' || _SEARCH == false) ? 0 : 1}%`
+            where[db.Sequelize.Op.or].push({
+                active: { [db.Sequelize.Op.like]: booleanOf }
+            });
+        }
+
+    }
+
+    let PetType = await db.PetType.findAll({
         attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-        where: {
-            live: true,
-            active: true
-        },
+        where,
         order: [
             ['id', 'DESC']
         ]
     });
 
     return {
-        DB_value: PonticDesign
+        DB_value: PetType
     };
 }
 

@@ -15,6 +15,7 @@ const petTypes = require('./petType.route');
 const item = require('./item.route');
 const package = require('./package.route');
 const notification = require('./notification.route');
+const stat = require('./stats.route');
 
 // router.get('/', (req, res)=>{
 //     res.send('API Page');
@@ -34,5 +35,6 @@ router.use('/pet-types', Authenticate, DecodeToken, petTypes);
 router.use('/items', Authenticate, DecodeToken, item);
 router.use('/packages', Authenticate, DecodeToken, package);
 router.use('/notifications', Authenticate, DecodeToken, notification);
+router.use('/stats', Authenticate, DecodeToken, stat);
 
 module.exports = router;

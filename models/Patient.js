@@ -39,6 +39,11 @@ module.exports = (sequelize, Datatypes) => {
         type: Datatypes.STRING(),
         allowNull: true,
       },
+      noOrder: {
+        type: Datatypes.BOOLEAN(),
+        allowNull: true,
+        defaultValue: true,
+      },
       createdBy: {
         type: Datatypes.INTEGER(11),
         allowNull: true,

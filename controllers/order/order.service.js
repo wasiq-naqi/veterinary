@@ -63,7 +63,12 @@ exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH, _DATE, _AP
             include: {
                 as: 'Item',
                 model: db.Item,
-                attributes: ['name', 'description', 'active', 'price', 'petTypeId', 'serviceId']
+                attributes: ['name', 'description', 'active', 'price', 'petTypeId', 'serviceId'],
+                include: {
+                    model: db.Service,
+                    as: 'Service',
+                    attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                },
             }
         },
         {
@@ -75,7 +80,12 @@ exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH, _DATE, _AP
             include: {
                 as: 'Package',
                 model: db.Package,
-                attributes: ['name', 'description', 'active', 'price', 'petTypeId', 'serviceId']
+                attributes: ['name', 'description', 'active', 'price', 'petTypeId', 'serviceId'],
+                include: {
+                    model: db.Service,
+                    as: 'Service',
+                    attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                },
             }
         },
         {
@@ -210,7 +220,12 @@ exports.Get = async function ( _ID, _USER ) {
             include: {
                 as: 'Item',
                 model: db.Item,
-                attributes: ['name', 'description', 'active', 'price', 'petTypeId', 'serviceId']
+                attributes: ['name', 'description', 'active', 'price', 'petTypeId', 'serviceId'],
+                include: {
+                    model: db.Service,
+                    as: 'Service',
+                    attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                },
             }
         },
         {
@@ -222,7 +237,12 @@ exports.Get = async function ( _ID, _USER ) {
             include: {
                 as: 'Package',
                 model: db.Package,
-                attributes: ['name', 'description', 'active', 'price', 'petTypeId', 'serviceId']
+                attributes: ['name', 'description', 'active', 'price', 'petTypeId', 'serviceId'],
+                include: {
+                    model: db.Service,
+                    as: 'Service',
+                    attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                },
             }
         },
         {
@@ -331,9 +351,10 @@ exports.Create = async ( _OBJECT ) => {
     let items = {};
     let packages = {};
 
+    let Patient;
     if( _OBJECT.patientId ){
 
-        let Patient = await db.Patient.findOne({
+        Patient = await db.Patient.findOne({
             where: {
                 id: _OBJECT.patientId,
                 live: true
@@ -478,6 +499,20 @@ exports.Create = async ( _OBJECT ) => {
 
         }
         
+    }
+
+    try{
+
+        // Updating patiesnt status
+        let updatePatient = await Patient.update({ noOrder: false });
+
+    }
+    catch( Excp ){
+        let error = new Error("Internal Server Error");
+        error.status = 500;
+        return {
+            DB_error: error
+        };
     }
     
     _OBJECT.id = Order.dataValues.id;
@@ -1094,7 +1129,12 @@ exports.getOrdersByPatient = async function ( _PATIENT, _USER, _DATE, _APPOINTME
             include: {
                 as: 'Item',
                 model: db.Item,
-                attributes: ['name', 'description', 'active', 'price', 'petTypeId', 'serviceId']
+                attributes: ['name', 'description', 'active', 'price', 'petTypeId', 'serviceId'],
+                include: {
+                    model: db.Service,
+                    as: 'Service',
+                    attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                },
             }
         },
         {
@@ -1106,7 +1146,12 @@ exports.getOrdersByPatient = async function ( _PATIENT, _USER, _DATE, _APPOINTME
             include: {
                 as: 'Package',
                 model: db.Package,
-                attributes: ['name', 'description', 'active', 'price', 'petTypeId', 'serviceId']
+                attributes: ['name', 'description', 'active', 'price', 'petTypeId', 'serviceId'],
+                include: {
+                    model: db.Service,
+                    as: 'Service',
+                    attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                },
             }
         },
         {
@@ -1285,7 +1330,12 @@ exports.getOrdersByPet = async function ( _PET, _USER, _DATE, _APPOINTMENT, _CHE
             include: {
                 as: 'Item',
                 model: db.Item,
-                attributes: ['name', 'description', 'active', 'price', 'petTypeId', 'serviceId']
+                attributes: ['name', 'description', 'active', 'price', 'petTypeId', 'serviceId'],
+                include: {
+                    model: db.Service,
+                    as: 'Service',
+                    attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                },
             }
         },
         {
@@ -1297,7 +1347,12 @@ exports.getOrdersByPet = async function ( _PET, _USER, _DATE, _APPOINTMENT, _CHE
             include: {
                 as: 'Package',
                 model: db.Package,
-                attributes: ['name', 'description', 'active', 'price', 'petTypeId', 'serviceId']
+                attributes: ['name', 'description', 'active', 'price', 'petTypeId', 'serviceId'],
+                include: {
+                    model: db.Service,
+                    as: 'Service',
+                    attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                },
             }
         },
         {

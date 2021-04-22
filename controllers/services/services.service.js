@@ -2,12 +2,33 @@ var db = require('../../models');
 const { Pagination } = require('../../functions');
 
 
-exports.GetAll = async function ( _PAGE, _LIMIT) {
+exports.GetAll = async function ( _PAGE, _LIMIT, _SEARCH ) {
 
     let association = {
         where: {
             live: true
         },
+    }
+
+    if(_SEARCH){
+
+        let searchOf = `%${_SEARCH}%`;
+        
+        association.where[db.Sequelize.Op.or] = [
+            { id: { [db.Sequelize.Op.like]: searchOf } },
+            { name: { [db.Sequelize.Op.like]: searchOf } },
+            { displayName: { [db.Sequelize.Op.like]: searchOf } },
+            { description: { [db.Sequelize.Op.like]: searchOf } },
+            // { active: { [db.Sequelize.Op.like]: booleanOf } },
+        ]
+
+        if(_SEARCH == 'true' || _SEARCH == true || _SEARCH == 'false' || _SEARCH == false){
+            let booleanOf = `%${(_SEARCH == 'false' || _SEARCH == false) ? 0 : 1}%`
+            association.where[db.Sequelize.Op.or].push({
+                active: { [db.Sequelize.Op.like]: booleanOf }
+            });
+        }
+
     }
 
     let result = await Pagination(_PAGE, _LIMIT, db.Service, association);
@@ -17,7 +38,7 @@ exports.GetAll = async function ( _PAGE, _LIMIT) {
     };
 }
 
-exports.GetEachAndEvery = async function () {
+exports.GetEachAndEvery = async function ( _SEARCH ) {
     
     let Service = await db.Service.findAll({
         attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
@@ -38,7 +59,7 @@ exports.GetEachAndEvery = async function () {
     };
 }
 
-exports.GetAllActive = async function () {
+exports.GetAllActive = async function ( _SEARCH ) {
     
     let Service = await db.Service.findAll({
         attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },

@@ -5,6 +5,11 @@ const { Pagination } = require('../../functions');
 exports.GetAll = async function ( _PAGE, _LIMIT, _DATE) {
 
     let association = {
+        include: {
+            model: db.Patient,
+            as: 'Patient',
+            attributes: ['image', 'emiratesId', 'name', 'contact'],
+        },
         where: {
             live: true
         },
@@ -33,6 +38,11 @@ exports.GetEachAndEvery = async function ( _DATE ) {
     
     let Notification = await db.Notification.findAll({
         attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        include: {
+            model: db.Patient,
+            as: 'Patient',
+            attributes: ['image', 'emiratesId', 'name', 'contact'],
+        },
         where: {
             live: true,
             [db.Sequelize.Op.or]: db.sequelize.where(db.sequelize.fn('date', db.sequelize.col('date')), _DATE),

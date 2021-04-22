@@ -42,6 +42,11 @@ module.exports = {
       type: Sequelize.STRING(),
       allowNull: true,
     },
+    noOrder: {
+      type: Sequelize.BOOLEAN(),
+      allowNull: true,
+      defaultValue: true,
+    },
     createdBy: {
       type: Sequelize.INTEGER(11),
       allowNull: true,

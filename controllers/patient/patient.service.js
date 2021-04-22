@@ -102,6 +102,40 @@ exports.Create = async (_OBJECT) => {
         };
     }
 
+    if(_OBJECT.contact){
+        let contact = await db.Patient.findOne({
+            where: {
+                contact: _OBJECT.contact,
+                live: true
+            }
+        });
+    
+        if(contact){
+            let error = new Error(`Patient already exist having contact: '${_OBJECT.contact}'`);
+            error.status = 400;
+            return {
+                DB_error: error
+            };
+        }
+    }
+
+    if(_OBJECT.email){
+        let email = await db.Patient.findOne({
+            where: {
+                email: _OBJECT.email,
+                live: true
+            }
+        });
+    
+        if(email){
+            let error = new Error(`Patient already exist having email: '${_OBJECT.email}'`);
+            error.status = 400;
+            return {
+                DB_error: error
+            };
+        }
+    }
+
     let result = await db.Patient.create(_OBJECT);
 
     delete result.dataValues.createdBy;
@@ -146,14 +180,52 @@ exports.Update = async (_OBJECT, _ID) => {
         }
     });
 
-    console.log(emirateId, _OBJECT.emiratesId);
-
     if(emirateId){
         let error = new Error(`Patient already exist having emirates id: '${_OBJECT.emiratesId}'`);
         error.status = 400;
         return {
             DB_error: error
         };
+    }
+
+    if(_OBJECT.contact){
+        let contact = await db.Patient.findOne({
+            where: {
+                contact: _OBJECT.contact,
+                id: {
+                    [db.Sequelize.Op.ne]: _ID
+                },
+                live: true
+            }
+        });
+    
+        if(contact){
+            let error = new Error(`Patient already exist having contact: '${_OBJECT.contact}'`);
+            error.status = 400;
+            return {
+                DB_error: error
+            };
+        }
+    }
+
+    if(_OBJECT.email){
+        let email = await db.Patient.findOne({
+            where: {
+                email: _OBJECT.email,
+                id: {
+                    [db.Sequelize.Op.ne]: _ID
+                },
+                live: true
+            }
+        });
+    
+        if(email){
+            let error = new Error(`Patient already exist having email: '${_OBJECT.email}'`);
+            error.status = 400;
+            return {
+                DB_error: error
+            };
+        }
     }
 
     if(_OBJECT.image == 'null' || _OBJECT.image == null || _OBJECT.image == ''){
@@ -164,19 +236,6 @@ exports.Update = async (_OBJECT, _ID) => {
 
         let result = await Patient.update(_OBJECT);
 
-        // let result = await db.Patient.findOne({
-        //     attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-        //     where: {
-        //         id: _ID,
-        //         live: true
-        //     }
-        // });
-
-        // delete result.dataValues.createdBy;
-        // delete result.dataValues.updatedBy;
-        // delete result.dataValues.updatedAt;
-        // delete result.dataValues.live;
-
         return {
             DB_value: result
         };
@@ -186,27 +245,13 @@ exports.Update = async (_OBJECT, _ID) => {
 
         console.log(Excp);
         
-        let error = new Error("");
+        let error = new Error("Internal Server Error");
         error.status = 500;
         return {
             DB_error: error
         };
 
     }
-
-    // Patient.emiratesId = _OBJECT.emiratesId;
-    // Patient.name = _OBJECT.name;
-    // Patient.email = _OBJECT.email;
-    // Patient.gender = _OBJECT.gender;
-    // Patient.contact = _OBJECT.contact;
-    // Patient.dob = _OBJECT.dob;
-    // Patient.address = _OBJECT.address;
-    // Patient.updatedBy = _OBJECT.updatedBy;
-
-    // let result = await Patient.save();
-
-    
-
 
 }
 

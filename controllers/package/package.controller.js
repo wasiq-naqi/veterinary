@@ -7,9 +7,9 @@ const Schema = Joi.object({
     active: Joi.boolean().allow('', null),
     description: Joi.string().allow('', null),
     price: Joi.number().required(),
-    petTypeId: Joi.number().required(),
-    serviceId: Joi.number().required(),
-    itemIds: Joi.array().required().items( Joi.number() )
+    petTypeId: Joi.number().required().allow('', null),
+    serviceId: Joi.number().required().allow('', null),
+    itemIds: Joi.array().required().min(1).items( Joi.number() )
 });
 
 exports.GetAll = async (req, res, next) => {

@@ -13,12 +13,9 @@ const Schema = Joi.object({
 
 exports.GetAll = async (req, res, next) => {
     
+    let { pageNo, pageSize, search } = req.query;
 
-    let pageNo = req.query.pageNo;
-    let pageSize = req.query.pageSize;
-
-
-    let { DB_error, DB_value } = await ServiceService.GetAll(pageNo, pageSize);
+    let { DB_error, DB_value } = await ServiceService.GetAll(pageNo, pageSize, search);
 
     if(DB_error){
 
@@ -31,8 +28,9 @@ exports.GetAll = async (req, res, next) => {
 
 exports.GetEachAndEvery = async (req, res, next) => {
 
+    let { search } = req.query;
 
-    let { DB_error, DB_value } = await ServiceService.GetEachAndEvery();
+    let { DB_error, DB_value } = await ServiceService.GetEachAndEvery( search );
 
     if(DB_error){
 
@@ -45,8 +43,9 @@ exports.GetEachAndEvery = async (req, res, next) => {
 
 exports.GetAllActive = async (req, res, next) => {
 
+    let { search } = req.query;
 
-    let { DB_error, DB_value } = await ServiceService.GetAllActive();
+    let { DB_error, DB_value } = await ServiceService.GetAllActive( search );
 
     if(DB_error){
 

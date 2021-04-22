@@ -17,7 +17,7 @@ const sequelize = new Sequelize(process.env.DB_DATABASE, process.env.DB_USER, pr
   host: process.env.DB_HOST, 
   dialect: 'mariadb',
   logging: false,
-  timezone: '+05:00', //fron writing into database
+  // timezone: '+05:00', //fron writing into database
   // dialectOptions: {
   //   // useUTC: false, //for reading from database
   //   timezone: "+05:00"
@@ -84,6 +84,8 @@ sequelize.authenticate()
     db.Package.hasMany( db.PackageItem , { as: 'PackageItems', foreignKey: 'packageId'} );
 
     db.PackageItem.belongsTo( db.Item, { as: 'Item', foreignKey: 'itemId' }) ;
+
+    db.Notification.belongsTo(db.Patient, { as: 'Patient', foreignKey: 'patientId'});
 
     // Synchronization
     sequelize.sync()

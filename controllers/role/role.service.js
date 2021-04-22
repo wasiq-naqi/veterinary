@@ -2,7 +2,7 @@ var db = require('../../models');
 const { Pagination } = require('../../functions');
 const { Roles } = require('../../utils/permissions');
 
-exports.GetAll = async function ( _PAGE, _LIMIT, _Token) {
+exports.GetAll = async function ( _PAGE, _LIMIT, _Token, _SEARCH ) {
 
     let where = {
         live: true,
@@ -11,6 +11,26 @@ exports.GetAll = async function ( _PAGE, _LIMIT, _Token) {
     if(_Token.role.id != Roles['Superman']){
         where['id'] = { [db.Sequelize.Op.ne]: Roles['Superman'] }
     }
+
+    if(_SEARCH){
+
+        let searchOf = `%${_SEARCH}%`;
+        where[db.Sequelize.Op.or]= [
+            { id: { [db.Sequelize.Op.like]: searchOf } },
+            { name: { [db.Sequelize.Op.like]: searchOf } },
+            { displayName: { [db.Sequelize.Op.like]: searchOf } },
+            { description: { [db.Sequelize.Op.like]: searchOf } },
+        ]
+
+        if(_SEARCH == 'true' || _SEARCH == true || _SEARCH == 'false' || _SEARCH == false){
+            let booleanOf = `%${(_SEARCH == 'false' || _SEARCH == false) ? 0 : 1}%`
+            where[db.Sequelize.Op.or].push({
+                active: { [db.Sequelize.Op.like]: booleanOf }
+            });
+        }
+
+    }
+
 
     let association = {
         where
@@ -23,7 +43,7 @@ exports.GetAll = async function ( _PAGE, _LIMIT, _Token) {
     };
 }
 
-exports.GetEachAndEvery = async function ( _Token) {
+exports.GetEachAndEvery = async function ( _Token, _SEARCH ) {
     
     let where = { 
         live: true,
@@ -31,6 +51,25 @@ exports.GetEachAndEvery = async function ( _Token) {
 
     if(_Token.role.id != Roles['Superman']){
         where['id'] = { [db.Sequelize.Op.ne]: Roles['Superman'] }
+    }
+
+    if(_SEARCH){
+
+        let searchOf = `%${_SEARCH}%`;
+        where[db.Sequelize.Op.or]= [
+            { id: { [db.Sequelize.Op.like]: searchOf } },
+            { name: { [db.Sequelize.Op.like]: searchOf } },
+            { displayName: { [db.Sequelize.Op.like]: searchOf } },
+            { description: { [db.Sequelize.Op.like]: searchOf } },
+        ]
+
+        if(_SEARCH == 'true' || _SEARCH == true || _SEARCH == 'false' || _SEARCH == false){
+            let booleanOf = `%${(_SEARCH == 'false' || _SEARCH == false) ? 0 : 1}%`
+            where[db.Sequelize.Op.or].push({
+                active: { [db.Sequelize.Op.like]: booleanOf }
+            });
+        }
+
     }
 
     let Role = await db.Role.findAll({
@@ -46,7 +85,7 @@ exports.GetEachAndEvery = async function ( _Token) {
     };
 }
 
-exports.GetAllActive = async function ( _Token) {
+exports.GetAllActive = async function ( _Token, _SEARCH ) {
     
     let where = { 
         live: true,
@@ -55,6 +94,25 @@ exports.GetAllActive = async function ( _Token) {
 
     if(_Token.role.id != Roles['Superman']){
         where['id'] = { [db.Sequelize.Op.ne]: Roles['Superman'] }
+    }
+
+    if(_SEARCH){
+
+        let searchOf = `%${_SEARCH}%`;
+        where[db.Sequelize.Op.or]= [
+            { id: { [db.Sequelize.Op.like]: searchOf } },
+            { name: { [db.Sequelize.Op.like]: searchOf } },
+            { displayName: { [db.Sequelize.Op.like]: searchOf } },
+            { description: { [db.Sequelize.Op.like]: searchOf } },
+        ]
+
+        if(_SEARCH == 'true' || _SEARCH == true || _SEARCH == 'false' || _SEARCH == false){
+            let booleanOf = `%${(_SEARCH == 'false' || _SEARCH == false) ? 0 : 1}%`
+            where[db.Sequelize.Op.or].push({
+                active: { [db.Sequelize.Op.like]: booleanOf }
+            });
+        }
+
     }
 
     let Role = await db.Role.findAll({

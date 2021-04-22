@@ -165,7 +165,8 @@ exports.GetEachAndEvery = async function ({ petTypeId, serviceId, active, search
 exports.GetAllActive = async function ({ petTypeId, serviceId, search }) {
     
     let where = {
-        live: true
+        live: true,
+        active: true
     }
 
     if(search){
@@ -275,42 +276,45 @@ exports.Create = async (_OBJECT) => {
 
     let items = {};
 
-    let Service = await db.Service.findOne({
-        attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-        where: {
-            id: _OBJECT.serviceId,
-            live: true
+    if( _OBJECT.serviceId ){
+        let Service = await db.Service.findOne({
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            where: {
+                id: _OBJECT.serviceId,
+                live: true
+            }
+        });
+    
+    
+        if(!Service){
+    
+            let error = new Error("Service not found!");
+            error.status = 404;
+            return {
+                DB_error: error
+            };
+    
         }
-    });
-
-
-    if(!Service){
-
-        let error = new Error("Service not found!");
-        error.status = 404;
-        return {
-            DB_error: error
-        };
-
     }
 
-    let PetType = await db.PetType.findOne({
-        attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-        where: {
-            id: _OBJECT.petTypeId,
-            live: true
+    if(_OBJECT.petTypeId){
+        let PetType = await db.PetType.findOne({
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            where: {
+                id: _OBJECT.petTypeId,
+                live: true
+            }
+        });
+    
+        if(!PetType){
+    
+            let error = new Error("Pet type not found!");
+            error.status = 404;
+            return {
+                DB_error: error
+            };
+    
         }
-    });
-
-
-    if(!PetType){
-
-        let error = new Error("Pet type not found!");
-        error.status = 404;
-        return {
-            DB_error: error
-        };
-
     }
 
     for( let item of _OBJECT.itemIds ){
@@ -430,42 +434,46 @@ exports.Update = async (_OBJECT, _ID) => {
 
     }
 
-    let Service = await db.Service.findOne({
-        attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-        where: {
-            id: _OBJECT.serviceId,
-            live: true
+    if(_OBJECT.serviceId){
+        let Service = await db.Service.findOne({
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            where: {
+                id: _OBJECT.serviceId,
+                live: true
+            }
+        });
+    
+        if(!Service){
+    
+            let error = new Error("Service not found!");
+            error.status = 404;
+            return {
+                DB_error: error
+            };
+    
         }
-    });
-
-    if(!Service){
-
-        let error = new Error("Service not found!");
-        error.status = 404;
-        return {
-            DB_error: error
-        };
-
     }
 
-    let PetType = await db.PetType.findOne({
-        attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
-        where: {
-            id: _OBJECT.petTypeId,
-            live: true
+    if(_OBJECT.petTypeId){
+        let PetType = await db.PetType.findOne({
+            attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            where: {
+                id: _OBJECT.petTypeId,
+                live: true
+            }
+        });
+    
+        if(!PetType){
+    
+            let error = new Error("Pet type not found!");
+            error.status = 404;
+            return {
+                DB_error: error
+            };
+    
         }
-    });
-
-    if(!PetType){
-
-        let error = new Error("Pet type not found!");
-        error.status = 404;
-        return {
-            DB_error: error
-        };
-
     }
-
+    
     for( let item of _OBJECT.itemIds ){
 
         let itemInstance = await db.Item.findOne({ where: { id: item, live: true }});
