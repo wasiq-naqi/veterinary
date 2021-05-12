@@ -4,9 +4,7 @@ const path = require('path');
 const {  Errors } = require('./functions');
 const { HandleNullString } = require('./middlewares/index');
 const app = express();
-
-const dotenv = require('dotenv');
-dotenv.config({ path: __dirname + '/.env'});
+const config = require('./config')();
 
 // Initializing Middlewares
 app.use(cors());
@@ -24,7 +22,7 @@ app.use(HandleNullString);
 const routes = require('./routes');
 
 // IMPORTING DATABASE
-require('./models/index');
+require('./database/models');
 
 // REGISTERING ROUTES
 app.use('/api', routes);
@@ -38,6 +36,7 @@ app.get('*', (req, res) => {
 });
 
 // STARTING SERVER
-app.listen(process.env.APP_PORT, ()=> {
-    console.log(`App is listning on Port: ${process.env.APP_PORT}`)
+app.listen(config.APP.PORT, ()=> {
+    console.log(`[APP] Enviorment set to: '${config.environment}'`);
+    console.log(`[APP] App is listning on Port: ${config.APP.PORT}`)
 });

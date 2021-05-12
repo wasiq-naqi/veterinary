@@ -1,32 +1,67 @@
-const dotenv = require('dotenv');
-dotenv.config({ path: __dirname + '/.env'});
+module.exports = () => {
 
-module.exports = {
-  development: {
-    username: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_DATABASE,
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: process.env.DB_DIALECT,
-    "operatorsAliases": 0
-  },
-  test: {
-    username: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_DATABSE,
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: process.env.DB_DIALECT,
-    "operatorsAliases": 0
-  },
-  production: {
-    username: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_DATABSE,
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: process.env.DB_DIALECT,
-    "operatorsAliases": 0
-  }
-};
+    let environment = process.env.NODE_ENV || 'development';
+
+    let configuration = {
+        development: {
+            environment: 'development',
+            APP:{
+                PORT: 8080
+            },
+            DB:{
+                DIALECT: 'mysql',
+                HOST: 'localhost',
+                PORT: 3306,
+                USER: 'root',
+                PASSWORD: '',
+                DATABASE: 'veterinary_medical',
+            },
+            TOKEN:{
+                KEY: "THIS_IS_A_TOKEN_KEY",
+                ISSUER: "Identity - PITP Inc",
+                EXPIRY: "24h",
+            }
+        },
+        testing: {
+            environment: 'testing',
+            APP:{
+                PORT: process.env.DEV_APP_PORT
+            },
+            DB:{
+                DIALECT: process.env.DEV_DB_DIALECT,
+                HOST: process.env.DEV_DB_HOST,
+                PORT: process.env.DEV_DB_PORT,
+                USER: process.env.DEV_DB_USER,
+                PASSWORD: process.env.DEV_DB_PASSWORD,
+                DATABASE: process.env.DEV_DB_DATABASE,
+            },
+            TOKEN:{
+                KEY: "THIS_IS_A_TOKEN_KEY",
+                ISSUER: "Identity - PITP Inc",
+                EXPIRY: "24h",
+            }
+        },
+        production: {
+            environment: 'production',
+            APP:{
+                PORT: 8081
+            },
+            DB:{
+                DIALECT: 'mysql',
+                HOST: 'localhost',
+                PORT: 3306,
+                USER: 'hollxzdw_admin_veterinary',
+                PASSWORD: 'admin_veterinary123',
+                DATABASE: 'hollxzdw_veterinary_medical',
+            },
+            TOKEN:{
+                KEY: "THIS_IS_A_TOKEN_KEY",
+                ISSUER: "Identity - PITP Inc",
+                EXPIRY: "24h",
+            }
+        },
+    }
+
+    return configuration[environment];
+
+}

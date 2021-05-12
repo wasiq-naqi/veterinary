@@ -1,4 +1,4 @@
-var db = require('../../models');
+var db = require('../../database/models');
 const { Pagination } = require('../../functions');
 
 exports.GetAll = async function ( _PAGE, _LIMIT) {
