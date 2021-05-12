@@ -6,7 +6,8 @@ module.exports = () => {
         development: {
             environment: 'development',
             APP:{
-                PORT: 8080
+                PORT: 8080,
+                SERVER: 'windows'
             },
             DB:{
                 DIALECT: 'mysql',
@@ -25,7 +26,8 @@ module.exports = () => {
         testing: {
             environment: 'testing',
             APP:{
-                PORT: process.env.DEV_APP_PORT
+                PORT: process.env.DEV_APP_PORT,
+                SERVER: 'linux'
             },
             DB:{
                 DIALECT: process.env.DEV_DB_DIALECT,
@@ -44,7 +46,8 @@ module.exports = () => {
         production: {
             environment: 'production',
             APP:{
-                PORT: 8081
+                PORT: 8081,
+                SERVER: 'linux'
             },
             DB:{
                 DIALECT: 'mysql',

@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const {  Errors } = require('./functions');
+const { Errors } = require('./functions');
 const { HandleNullString } = require('./middlewares/index');
 const app = express();
 const config = require('./config')();
@@ -37,6 +37,6 @@ app.get('*', (req, res) => {
 
 // STARTING SERVER
 app.listen(config.APP.PORT, ()=> {
-    console.log(`[APP] Enviorment set to: '${config.environment}'`);
-    console.log(`[APP] App is listning on Port: ${config.APP.PORT}`)
+    console.log(`[SERVER] Enviorment set to: '${config.environment}'`);
+    console.log(`[SERVER] App is listning on Port: ${config.APP.PORT}`)
 });

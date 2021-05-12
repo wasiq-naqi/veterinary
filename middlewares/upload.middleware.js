@@ -1,10 +1,11 @@
 const multer  = require('multer');
 const { CreateDirectoryIfNotExist } = require('../functions');
+const config = require('../config')();
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
       
-        let slashes = (process.env.APP_SERVER.toLowerCase() == 'window') ? '\\' : '/';
+        let slashes = (config.APP.SERVER.toLowerCase() == 'window') ? '\\' : '/';
         // let slashes = path.sep;
 
         let date = new Date();
