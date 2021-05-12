@@ -16,6 +16,7 @@ const Schema = Joi.object({
     patientId: Joi.number().required(),
     petTypeId: Joi.number().allow('', null),
     microchip: Joi.boolean().allow('', null),
+    microchipNumber: Joi.string().allow(null, ''),
 });
 
 const PatientPetsSchema = Joi.object({

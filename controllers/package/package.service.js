@@ -23,8 +23,8 @@ exports.GetAll = async function ( _PAGE, _LIMIT, { petTypeId, serviceId, active,
             { active: { [db.Sequelize.Op.like]: searchOf } },
             { price: { [db.Sequelize.Op.like]: searchOf } },
 
-            { name: db.Sequelize.where(db.Sequelize.col('PetType.name'), { [db.Sequelize.Op.like]: searchOf  }) },
-            { name: db.Sequelize.where(db.Sequelize.col('Service.name'), { [db.Sequelize.Op.like]: searchOf  }) },
+            // { name: db.Sequelize.where(db.Sequelize.col('PetType.name'), { [db.Sequelize.Op.like]: searchOf  }) },
+            // { name: db.Sequelize.where(db.Sequelize.col('Service.name'), { [db.Sequelize.Op.like]: searchOf  }) },
 
         ]
 
@@ -78,13 +78,15 @@ exports.GetAll = async function ( _PAGE, _LIMIT, { petTypeId, serviceId, active,
                         as: 'Item',
                         attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
                     }
-                ]
+                ],
             }
         ],
-        subQuery: false,
+        // subQuery: false,
         distinct: true,
         where
     }
+
+    console.log(_PAGE, _LIMIT);
 
     let result = await Pagination(_PAGE, _LIMIT, db.Package, association);
 
@@ -114,8 +116,8 @@ exports.GetEachAndEvery = async function ({ petTypeId, serviceId, active, search
             { active: { [db.Sequelize.Op.like]: searchOf } },
             { price: { [db.Sequelize.Op.like]: searchOf } },
 
-            { name: db.Sequelize.where(db.Sequelize.col('PetType.name'), { [db.Sequelize.Op.like]: searchOf  }) },
-            { name: db.Sequelize.where(db.Sequelize.col('Service.name'), { [db.Sequelize.Op.like]: searchOf  }) },
+            // { name: db.Sequelize.where(db.Sequelize.col('PetType.name'), { [db.Sequelize.Op.like]: searchOf  }) },
+            // { name: db.Sequelize.where(db.Sequelize.col('Service.name'), { [db.Sequelize.Op.like]: searchOf  }) },
 
         ]
 
@@ -183,8 +185,8 @@ exports.GetAllActive = async function ({ petTypeId, serviceId, search }) {
             { active: { [db.Sequelize.Op.like]: searchOf } },
             { price: { [db.Sequelize.Op.like]: searchOf } },
 
-            { name: db.Sequelize.where(db.Sequelize.col('PetType.name'), { [db.Sequelize.Op.like]: searchOf  }) },
-            { name: db.Sequelize.where(db.Sequelize.col('Service.name'), { [db.Sequelize.Op.like]: searchOf  }) },
+            // { name: db.Sequelize.where(db.Sequelize.col('PetType.name'), { [db.Sequelize.Op.like]: searchOf  }) },
+            // { name: db.Sequelize.where(db.Sequelize.col('Service.name'), { [db.Sequelize.Op.like]: searchOf  }) },
 
         ]
 

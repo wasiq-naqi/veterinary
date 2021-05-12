@@ -17,11 +17,17 @@ const sequelize = new Sequelize(process.env.DB_DATABASE, process.env.DB_USER, pr
   host: process.env.DB_HOST, 
   dialect: 'mariadb',
   logging: false,
-  // timezone: '+05:00', //fron writing into database
-  // dialectOptions: {
-  //   // useUTC: false, //for reading from database
-  //   timezone: "+05:00"
-  // },
+  timezone: '+04:00', //fro writing into database
+  dialectOptions: {
+    useUTC: false, //for reading from database
+    // timezone: "+04:00",
+    // typeCast: function (field, next) { // for reading from database
+    //   if (field.type === 'DATETIME') {
+    //     return field.string()
+    //   }
+    //     return next()
+    // },
+  },
   // timezone: 'Asia/Karachi'
 });
 

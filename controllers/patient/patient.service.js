@@ -87,19 +87,21 @@ exports.Get = async function ( _ID ) {
 
 exports.Create = async (_OBJECT) => {
 
-    let emirateId = await db.Patient.findOne({
-        where: {
-            emiratesId: _OBJECT.emiratesId,
-            live: true
+    if(_OBJECT.emiratesId){
+        let emirateId = await db.Patient.findOne({
+            where: {
+                emiratesId: _OBJECT.emiratesId,
+                live: true
+            }
+        });
+    
+        if(emirateId){
+            let error = new Error(`Patient already exist having emirates id: '${_OBJECT.emiratesId}'`);
+            error.status = 400;
+            return {
+                DB_error: error
+            };
         }
-    });
-
-    if(emirateId){
-        let error = new Error(`Patient already exist having emirates id: '${_OBJECT.emiratesId}'`);
-        error.status = 400;
-        return {
-            DB_error: error
-        };
     }
 
     if(_OBJECT.contact){
@@ -170,24 +172,26 @@ exports.Update = async (_OBJECT, _ID) => {
 
     }
 
-    let emirateId = await db.Patient.findOne({
-        where: {
-            emiratesId: _OBJECT.emiratesId,
-            id: {
-                [db.Sequelize.Op.ne]: _ID
-            },
-            live: true
+    if(_OBJECT.emiratesId){
+        let emirateId = await db.Patient.findOne({
+            where: {
+                emiratesId: _OBJECT.emiratesId,
+                id: {
+                    [db.Sequelize.Op.ne]: _ID
+                },
+                live: true
+            }
+        });
+    
+        if(emirateId){
+            let error = new Error(`Patient already exist having emirates id: '${_OBJECT.emiratesId}'`);
+            error.status = 400;
+            return {
+                DB_error: error
+            };
         }
-    });
-
-    if(emirateId){
-        let error = new Error(`Patient already exist having emirates id: '${_OBJECT.emiratesId}'`);
-        error.status = 400;
-        return {
-            DB_error: error
-        };
     }
-
+    
     if(_OBJECT.contact){
         let contact = await db.Patient.findOne({
             where: {

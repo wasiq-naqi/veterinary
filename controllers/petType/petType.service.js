@@ -144,6 +144,21 @@ exports.Get = async function ( _ID ) {
 
 exports.Create = async (_OBJECT) => {
 
+    let PetName = await db.PetType.findOne({
+        where: {
+            name: _OBJECT.name,
+            live: true
+        }
+    });
+
+    if(PetName){
+        let error = new Error(`Pet type already exist having name: '${_OBJECT.name}'`);
+        error.status = 400;
+        return {
+            DB_error: error
+        };
+    }
+
     let result = await db.PetType.create(_OBJECT);
 
     delete result.dataValues.createdBy;
@@ -168,7 +183,6 @@ exports.Update = async (_OBJECT, _ID) => {
         }
     });
 
-
     if(!Instance){
 
         let error = new Error( modelName + " not found!");
@@ -177,6 +191,24 @@ exports.Update = async (_OBJECT, _ID) => {
             DB_error: error
         };
 
+    }
+
+    let PetName = await db.PetType.findOne({
+        where: {
+            name: _OBJECT.name,
+            live: true,
+            id: {
+                [db.Sequelize.Op.ne]: _ID
+            },
+        }
+    });
+
+    if(PetName){
+        let error = new Error(`Pet type already exist having name: '${_OBJECT.name}'`);
+        error.status = 400;
+        return {
+            DB_error: error
+        };
     }
 
     try{

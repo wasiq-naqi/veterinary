@@ -54,6 +54,10 @@ module.exports = {
       type: Sequelize.BOOLEAN,
       allowNull: true,
     },
+    microchipNumber: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
     patientId : {
       type: Sequelize.INTEGER(11),
       allowNull: false,

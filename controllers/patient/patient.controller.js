@@ -4,11 +4,11 @@ const { Errors } = require('../../functions');
 
 const Schema = Joi.object({
     image: Joi.string().allow(null, ''),
-    emiratesId: Joi.string().required(),
+    emiratesId: Joi.string().allow('', null),
     name: Joi.string().required(),
-    email: Joi.string().allow('', null),
+    email: Joi.string().email().allow('', null),
     gender: Joi.string().allow('', null),
-    contact: Joi.string().allow('', null),
+    contact: Joi.string().required(),
     dob: Joi.date().iso().allow('', null),
     address: Joi.string().allow('', null),
 });

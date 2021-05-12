@@ -51,6 +51,10 @@ module.exports = (sequelize, Datatypes) => {
         type: Datatypes.BOOLEAN,
         allowNull: true,
       },
+      microchipNumber: {
+        type: Datatypes.STRING,
+        allowNull: true,
+      },
       patientId : {
         type: Datatypes.INTEGER(11),
         allowNull: false,
