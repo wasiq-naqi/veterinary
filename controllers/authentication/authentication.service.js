@@ -1,4 +1,6 @@
 var db = require('../../database/models');
+
+// Importing Model directly from file
 const ModelUser = require('../../database/models/User');
 
 exports.Login = async function ( _OBJECT ) {
