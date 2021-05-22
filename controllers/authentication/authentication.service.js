@@ -1,8 +1,9 @@
 var db = require('../../database/models');
+const ModelUser = require('../../database/models/User');
 
 exports.Login = async function ( _OBJECT ) {
 
-    let User = await db.User.findOne({
+    let User = await ModelUser.findOne({
         // attributes: { exclude: ['password'] },
         include: [{
             model: db.Role, // will create a left join
@@ -14,7 +15,6 @@ exports.Login = async function ( _OBJECT ) {
             live: true
         }
     });
-
 
     if(!User){
 
