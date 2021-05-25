@@ -66,6 +66,6 @@ module.exports = () => {
         },
     }
 
-    return configuration[environment] || connfiguration[defaultEnviornment];
+    return configuration[environment] || configuration[defaultEnviornment];
 
 }
