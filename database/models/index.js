@@ -69,6 +69,7 @@ sequelize.authenticate()
     
     // db.Order.belongsTo(db.Service, { foreignKey: 'serviceId'});
     db.Order.belongsTo(db.Patient, { foreignKey: 'patientId'});
+    db.Order.belongsTo(db.User, { as: 'AssignTo', foreignKey: 'assignTo'});
 
     db.Order.hasMany(db.Treatment, { as: 'Treatments', foreignKey: 'orderId'});
 

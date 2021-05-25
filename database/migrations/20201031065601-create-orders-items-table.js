@@ -22,6 +22,11 @@ module.exports = {
       type: Sequelize.INTEGER(11),
       allowNull: false,
     },
+    discount: {
+      type: Sequelize.INTEGER(11),
+      defaultValue: 0,
+      allowNull: false
+    },
     quantity:{
       type: Sequelize.INTEGER(11),
       allowNull: false,

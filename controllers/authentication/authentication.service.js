@@ -1,11 +1,11 @@
 var db = require('../../database/models');
 
 // Importing Model directly from file
-const ModelUser = require('../../database/models/User');
+// const ModelUser = require('../../database/models/User');
 
 exports.Login = async function ( _OBJECT ) {
 
-    let User = await ModelUser.findOne({
+    let User = await db.User.findOne({
         // attributes: { exclude: ['password'] },
         include: [{
             model: db.Role, // will create a left join

@@ -1,6 +1,7 @@
 module.exports = () => {
 
-    let environment = process.env.NODE_ENV || 'development';
+    const defaultEnviornment = 'development'
+    const environment = process.env.NODE_ENV || defaultEnviornment;
 
     let configuration = {
         development: {
@@ -23,19 +24,19 @@ module.exports = () => {
                 EXPIRY: "24h",
             }
         },
-        testing: {
-            environment: 'testing',
+        staging: {
+            environment: 'staging',
             APP:{
-                PORT: process.env.DEV_APP_PORT,
+                PORT: 8082,
                 SERVER: 'linux'
             },
             DB:{
-                DIALECT: process.env.DEV_DB_DIALECT,
-                HOST: process.env.DEV_DB_HOST,
-                PORT: process.env.DEV_DB_PORT,
-                USER: process.env.DEV_DB_USER,
-                PASSWORD: process.env.DEV_DB_PASSWORD,
-                DATABASE: process.env.DEV_DB_DATABASE,
+                DIALECT: 'mysql',
+                HOST: 'localhost',
+                PORT: 3306,
+                USER: 'hollxzdw_admin_veterinary',
+                PASSWORD: 'admin_veterinary123',
+                DATABASE: 'hollxzdw_veterinary_medical_dev',
             },
             TOKEN:{
                 KEY: "THIS_IS_A_TOKEN_KEY",
@@ -65,6 +66,6 @@ module.exports = () => {
         },
     }
 
-    return configuration[environment];
+    return configuration[environment] || connfiguration[defaultEnviornment];
 
 }

@@ -34,6 +34,10 @@ module.exports = {
       type: Sequelize.BOOLEAN,
       allowNull: false
     },
+    assignTo: {
+      type: Sequelize.INTEGER(11),
+      allowNull: false,
+    },
     createdBy: {
       type: Sequelize.INTEGER(11),
       allowNull: true,

@@ -8,17 +8,19 @@ const Schema = Joi.object({
     appointment: Joi.boolean().required(),
     checkUpPrice: Joi.number().required().allow(0),
     description: Joi.string().required(),
-
+    assignTo: Joi.number().required().min(0),
     // itemIds: Joi.array().required().items( Joi.number() ),
     // packageIds: Joi.array().required().items( Joi.number() ),
 
     items: Joi.array().required().items( Joi.object({
         itemId: Joi.number().required(),
         quantity: Joi.number().min(1).required(),
+        discount: Joi.number().min(0).max(100).required(),
     }) ),
     packages: Joi.array().required().items( Joi.object({
         packageId: Joi.number().required(),
         quantity: Joi.number().min(1).required(),
+        discount: Joi.number().min(0).max(100).required(),
     }) ),
 
     followUp: Joi.boolean().required()

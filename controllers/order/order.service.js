@@ -55,6 +55,11 @@ exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH, _DATE, _AP
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
         },
         {
+            as: 'AssignTo',
+            model: db.User, // will create a left join
+            attributes: { exclude: ['password', 'createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        },
+        {
             as: 'Items',
             model: db.OrderItem, // will create a left join
             paranoid: false, 
@@ -210,6 +215,11 @@ exports.Get = async function ( _ID, _USER ) {
             as: 'Patient',
             model: db.Patient, // will create a left join
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        },
+        {
+            as: 'AssignTo',
+            model: db.User, // will create a left join
+            attributes: { exclude: ['password', 'createdBy', 'updatedBy', 'updatedAt', 'live'] },
         },
         {
             as: 'Items',
@@ -373,6 +383,43 @@ exports.Create = async ( _OBJECT ) => {
 
     }
 
+    if( _OBJECT.assignTo ){
+
+        User = await db.User.findOne({
+            where: {
+                id: _OBJECT.assignTo,
+                live: true
+            },
+            include: [{
+                model: db.Role, // will create a left join
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt'] }
+            }]
+        });
+
+        if(!User){
+
+            let error = new Error(`Assigni does not exists having id '${_OBJECT.assignTo}'`);
+            error.status = 400;
+            return {
+                DB_error: error
+            }; 
+
+        }
+
+        let UserPlain = User.get({ plain: true });
+
+        if(UserPlain.Role.name.toLowerCase() != 'doctor'){
+
+            let error = new Error(`Assigni having id '${_OBJECT.assignTo}' is not a doctor`);
+            error.status = 400;
+            return {
+                DB_error: error
+            }; 
+
+        }
+
+    }
+
     // Validating Items and calculating prices
     for(let item of _OBJECT['items']){
 
@@ -394,8 +441,14 @@ exports.Create = async ( _OBJECT ) => {
 
         }
 
-        orderPrice += ( +Item.price * +item.quantity );
-        items[item.itemId] = Item; 
+        const itemPriceBeforeDiscount = ( +Item.price * +item.quantity );
+        const itemDiscountInPrice = +( (+item.discount * itemPriceBeforeDiscount) / 100 ).toFixed(2);
+        const itemPriceAfterDiscount = +(+itemPriceBeforeDiscount - +itemDiscountInPrice).toFixed(2);
+
+        orderPrice += itemPriceAfterDiscount;
+        items[item.itemId] = Item;
+        items[item.itemId].priceDiscounted = itemPriceAfterDiscount; 
+        items[item.itemId].discount = item.discount; 
         items[item.itemId].quantity = item.quantity; 
         
     }
@@ -421,8 +474,14 @@ exports.Create = async ( _OBJECT ) => {
 
         }
 
-        orderPrice += ( +Item.price * +item.quantity );
+        const packagePriceBeforeDiscount = ( +Item.price * +item.quantity );
+        const packageDiscountInPrice = +( (+item.discount * packagePriceBeforeDiscount) / 100 ).toFixed(2);
+        const packagePriceAfterDiscount = +(packagePriceBeforeDiscount - packageDiscountInPrice).toFixed(2);
+
+        orderPrice += packagePriceAfterDiscount;
         packages[item.packageId] = Item; 
+        packages[item.packageId].priceDiscounted = packagePriceAfterDiscount; 
+        packages[item.packageId].discount = item.discount; 
         packages[item.packageId].quantity = item.quantity; 
         
     }
@@ -438,7 +497,8 @@ exports.Create = async ( _OBJECT ) => {
         price: orderPrice,
         description: _OBJECT.description,
         createdBy: _OBJECT.createdBy,
-        followUp: _OBJECT.followUp
+        followUp: _OBJECT.followUp,
+        assignTo: _OBJECT.assignTo
     }
 
     let Order = await db.Order.create(orderObject);
@@ -449,8 +509,9 @@ exports.Create = async ( _OBJECT ) => {
 
             await db.OrderItem.create({
                 itemId: item.itemId,
-                price: items[item.itemId].price,
+                price: items[item.itemId].priceDiscounted,
                 quantity: items[item.itemId].quantity,
+                discount: items[item.itemId].discount,
                 orderId: Order.dataValues.id,
                 createdBy: _OBJECT.createdBy,
             });
@@ -461,8 +522,9 @@ exports.Create = async ( _OBJECT ) => {
 
             await db.OrderPackage.create({
                 packageId: item.packageId,
-                price: packages[item.packageId].price,
+                price: packages[item.packageId].priceDiscounted,
                 quantity: packages[item.packageId].quantity,
+                discount: packages[item.packageId].discount,
                 orderId: Order.dataValues.id,
                 createdBy: _OBJECT.createdBy,
             });
@@ -613,6 +675,43 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
         if(!Patient){
 
             let error = new Error(`Patient does not exists having id '${_OBJECT.patientId}'`);
+            error.status = 400;
+            return {
+                DB_error: error
+            }; 
+
+        }
+
+    }
+
+    if( _OBJECT.assignTo ){
+
+        User = await db.User.findOne({
+            where: {
+                id: _OBJECT.assignTo,
+                live: true
+            },
+            include: [{
+                model: db.Role, // will create a left join
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt'] }
+            }]
+        });
+
+        if(!User){
+
+            let error = new Error(`Assigni does not exists having id '${_OBJECT.assignTo}'`);
+            error.status = 400;
+            return {
+                DB_error: error
+            }; 
+
+        }
+
+        let UserPlain = User.get({ plain: true });
+
+        if(UserPlain.Role.name.toLowerCase() != 'doctor'){
+
+            let error = new Error(`Assigni having id '${_OBJECT.assignTo}' is not a doctor`);
             error.status = 400;
             return {
                 DB_error: error
@@ -1121,6 +1220,11 @@ exports.getOrdersByPatient = async function ( _PATIENT, _USER, _DATE, _APPOINTME
 
     let include = [
         {
+            as: 'AssignTo',
+            model: db.User, // will create a left join
+            attributes: { exclude: ['password', 'createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        },
+        {
             as: 'Items',
             model: db.OrderItem, // will create a left join
             paranoid: false, 
@@ -1321,6 +1425,11 @@ exports.getOrdersByPet = async function ( _PET, _USER, _DATE, _APPOINTMENT, _CHE
     }
 
     let include = [
+        {
+            as: 'AssignTo',
+            model: db.User, // will create a left join
+            attributes: { exclude: ['password', 'createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        },
         {
             as: 'Items',
             model: db.OrderItem, // will create a left join
