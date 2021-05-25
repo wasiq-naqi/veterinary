@@ -146,6 +146,11 @@ exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH, _DATE, _AP
                 attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
             },
             {
+                as: 'AssignTo',
+                model: db.User, // will create a left join
+                attributes: { exclude: ['password', 'createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            },
+            {
                 as: 'Treatments',
                 model: db.Treatment, // will create a left join
                 paranoid: false, 
