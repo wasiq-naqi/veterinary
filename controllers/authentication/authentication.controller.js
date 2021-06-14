@@ -7,6 +7,7 @@ const Schema = Joi.object({
     password: Joi.string().required()
 });
 
+// eslint-disable-next-line no-unused-vars
 exports.Login = async (req, res, next) => {
 
         let {error, value} = Schema.validate(req.body);

@@ -33,7 +33,7 @@ module.exports = (sequelize, Datatypes) => {
       },
       assignTo: {
         type: Datatypes.INTEGER(11),
-        allowNull: false,
+        allowNull: true,
       },
       createdBy: {
         type: Datatypes.INTEGER(11),

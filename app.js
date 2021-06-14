@@ -19,10 +19,11 @@ app.use('/', express.static( path.join( __dirname, '../app') ));
 app.use(HandleNullString);
 // console.log(__dirname);
 
-const routes = require('./routes');
-
 // IMPORTING DATABASE
 require('./database/models');
+
+// Importing Routes
+const routes = require('./routes');
 
 // REGISTERING ROUTES
 app.use('/api', routes);

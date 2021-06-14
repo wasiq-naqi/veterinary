@@ -1,9 +1,24 @@
 var db = require('../../database/models');
 const { Pagination } = require('../../functions');
 const { Roles } = require('../../utils/permissions');
+// const moment = require('moment-timezone');
 
-exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH, _DATE, _APPOINTMENT, _CHECKUP ) {
+// exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH, _DATE, _APPOINTMENT, _CHECKUP ) {
+exports.getAllUsers = async function ( object ) {
     
+    let {
+        pageNo: _PAGE,
+        pageSize: _LIMIT,
+        user: _USER,
+        search: _SEARCH,
+        // date: _DATE,
+        fromDate,
+        toDate,
+        assignTo,
+        appointment: _APPOINTMENT,
+        checkUp: _CHECKUP,
+    } = object;
+
     let where = {
         live: true,
     }
@@ -31,20 +46,61 @@ exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH, _DATE, _AP
 
     }
 
-    if(_DATE){
+    if( fromDate ){
 
-        let searchOf = `${_DATE}`;
-        if(!where.hasOwnProperty(db.Sequelize.Op.and)) where[db.Sequelize.Op.and] = [];
-        // where[db.Sequelize.Op.and] = db.Sequelize.where(db.Sequelize.fn('date', db.Sequelize.col('Order.createdAt')), searchOf);
-        where[db.Sequelize.Op.and].push(db.Sequelize.where(db.Sequelize.fn('date', db.Sequelize.col('Order.createdAt')), searchOf));
+        let hasProperty = Object.prototype.hasOwnProperty.call(where, db.Sequelize.Op.and);
+        if( !hasProperty ) where[db.Sequelize.Op.and] = [];
+
+        where[db.Sequelize.Op.and].push( 
+            db.Sequelize.where(
+                db.Sequelize.fn('date', db.Sequelize.col('order.createdAt')), '>=', fromDate) 
+        );
+
+    }
+
+    if( toDate ){
+
+        
+        // let momentDate = moment().tz(toDate, 'Asia/Dubai' ).format();
+
+        // let momentDate = moment( '2021-04-30' ).format();
+        // let date = new Date( '2021-04-30' );
+
+        // let format = 'YYYY/MM/DD HH:mm:ss ZZ';
+        // let test = moment(date, format);
+        // console.log('test', test);
+
+        // console.log( date.toString() );
+        // console.log( momentDate );
+
+        let hasProperty = Object.prototype.hasOwnProperty.call(where, db.Sequelize.Op.and);
+        if( !hasProperty ) where[db.Sequelize.Op.and] = [];
+
+        where[db.Sequelize.Op.and].push( 
+            db.Sequelize.where(
+                db.Sequelize.fn('date', db.Sequelize.col('order.createdAt')), '<=', toDate) 
+        );
+
+
     }
 
     if(_APPOINTMENT){
 
         let searchOf = `${_APPOINTMENT}`;
+        let hasProperty = Object.prototype.hasOwnProperty.call(where, db.Sequelize.Op.and);
+        if( !hasProperty ) where[db.Sequelize.Op.and] = [];
 
-        if(!where.hasOwnProperty(db.Sequelize.Op.and)) where[db.Sequelize.Op.and] = [];
         where[db.Sequelize.Op.and].push({ appointment: searchOf });
+        
+    }
+
+    if(assignTo){
+
+        let searchOf = `${assignTo}`;
+        let hasProperty = Object.prototype.hasOwnProperty.call(where, db.Sequelize.Op.and);
+        if( !hasProperty ) where[db.Sequelize.Op.and] = [];
+
+        where[db.Sequelize.Op.and].push({ assignTo: searchOf });
         
     }
 
@@ -390,7 +446,7 @@ exports.Create = async ( _OBJECT ) => {
 
     if( _OBJECT.assignTo ){
 
-        User = await db.User.findOne({
+        let User = await db.User.findOne({
             where: {
                 id: _OBJECT.assignTo,
                 live: true

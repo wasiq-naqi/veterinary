@@ -8,7 +8,7 @@ const Schema = Joi.object({
     appointment: Joi.boolean().required(),
     checkUpPrice: Joi.number().required().allow(0),
     description: Joi.string().required(),
-    assignTo: Joi.number().required().min(0),
+    assignTo: Joi.number().required().min(1).allow(null),
     // itemIds: Joi.array().required().items( Joi.number() ),
     // packageIds: Joi.array().required().items( Joi.number() ),
 
@@ -40,15 +40,20 @@ let SchemaGetOrderStatus = Joi.object({
 exports.GetAll = async (req, res, next) => {
     
 
-    let { pageNo, pageSize, search, date, appointment, checkUp } = req.query;
+    let { pageNo, pageSize, search, date, appointment, checkUp, fromDate, toDate, assignTo } = req.query;
 
-    let { DB_error, DB_value } = await Service.getAllUsers(
-        pageNo, pageSize, 
-        {
-            userId: req.token.id, 
-            roleId: req.token.role.id
-        }, 
-        search, date, appointment, checkUp );
+    let { DB_error, DB_value } = await Service.getAllUsers({
+        pageNo,
+        pageSize,
+        fromDate,
+        toDate,
+        user: { userId: req.token.id, roleId: req.token.role.id },
+        search,
+        date,
+        appointment,
+        checkUp,
+        assignTo
+    });
 
     if(DB_error){
 
