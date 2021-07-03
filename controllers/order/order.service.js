@@ -53,7 +53,7 @@ exports.getAllUsers = async function ( object ) {
 
         where[db.Sequelize.Op.and].push( 
             db.Sequelize.where(
-                db.Sequelize.fn('date', db.Sequelize.col('order.createdAt')), '>=', fromDate) 
+                db.Sequelize.fn('date', db.Sequelize.col('Order.createdAt')), '>=', fromDate) 
         );
 
     }
@@ -78,7 +78,7 @@ exports.getAllUsers = async function ( object ) {
 
         where[db.Sequelize.Op.and].push( 
             db.Sequelize.where(
-                db.Sequelize.fn('date', db.Sequelize.col('order.createdAt')), '<=', toDate) 
+                db.Sequelize.fn('date', db.Sequelize.col('Order.createdAt')), '<=', toDate) 
         );
 
 
