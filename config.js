@@ -16,7 +16,7 @@ module.exports = () => {
                 PORT: 3306,
                 USER: 'root',
                 PASSWORD: '',
-                DATABASE: 'veterinary_medical',
+                DATABASE: 'hollxzdw_veterinary_medical',
             },
             TOKEN:{
                 KEY: "THIS_IS_A_TOKEN_KEY",

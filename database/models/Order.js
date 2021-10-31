@@ -20,11 +20,11 @@ module.exports = (sequelize, Datatypes) => {
         allowNull: false,
       },
       checkUpPrice: {
-        type: Datatypes.INTEGER(11),
+        type: Datatypes.FLOAT(11),
         allowNull: false,
       },
       price: {
-        type: Datatypes.INTEGER(11),
+        type: Datatypes.FLOAT,
         allowNull: false,
       },
       followUp:{

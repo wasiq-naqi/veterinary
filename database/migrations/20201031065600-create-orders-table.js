@@ -23,11 +23,11 @@ module.exports = {
       allowNull: false,
     },
     checkUpPrice: {
-      type: Sequelize.INTEGER(11),
+      type: Sequelize.FLOAT,
       allowNull: false,
     },
     price: {
-      type: Sequelize.INTEGER(11),
+      type: Sequelize.FLOAT,
       allowNull: false,
     },
     followUp:{

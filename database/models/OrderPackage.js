@@ -15,8 +15,12 @@ module.exports = (sequelize, Datatypes) => {
         type: Datatypes.INTEGER(11),
         allowNull: false,
       },
+      packagePrice : {
+        type: Datatypes.FLOAT,
+        allowNull: false,
+      },
       price:{
-        type: Datatypes.INTEGER(11),
+        type: Datatypes.FLOAT,
         allowNull: false,
       },
       discount: {

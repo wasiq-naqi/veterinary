@@ -1,3 +1,4 @@
+/* eslint-disable no-prototype-builtins */
 var db = require('../../database/models');
 const { Pagination } = require('../../functions');
 const { Roles } = require('../../utils/permissions');
@@ -120,6 +121,7 @@ exports.getAllUsers = async function ( object ) {
             model: db.OrderItem, // will create a left join
             paranoid: false, 
             required: false,
+            separate: true,
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
             include: {
                 as: 'Item',
@@ -137,6 +139,7 @@ exports.getAllUsers = async function ( object ) {
             model: db.OrderPackage, // will create a left join
             paranoid: false, 
             required: false,
+            separate: true,
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
             include: {
                 as: 'Package',
@@ -154,6 +157,7 @@ exports.getAllUsers = async function ( object ) {
             model: db.Treatment, // will create a left join
             paranoid: false, 
             required: false,
+            separate: true,
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
             include: [
                 {
@@ -199,11 +203,13 @@ exports.getAllUsers = async function ( object ) {
             {
                 as: 'Patient',
                 model: db.Patient, // will create a left join
+                separate: true,
                 attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
             },
             {
                 as: 'AssignTo',
                 model: db.User, // will create a left join
+                separate: true,
                 attributes: { exclude: ['password', 'createdBy', 'updatedBy', 'updatedAt', 'live'] },
             },
             {
@@ -211,6 +217,7 @@ exports.getAllUsers = async function ( object ) {
                 model: db.Treatment, // will create a left join
                 paranoid: false, 
                 required: false,
+                separate: true,
                 attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
                 include: [
                     {
@@ -508,6 +515,7 @@ exports.Create = async ( _OBJECT ) => {
 
         orderPrice += itemPriceAfterDiscount;
         items[item.itemId] = Item;
+        items[item.itemId].itemPrice = +Item.price;
         items[item.itemId].priceDiscounted = itemPriceAfterDiscount; 
         items[item.itemId].discount = item.discount; 
         items[item.itemId].quantity = item.quantity; 
@@ -540,7 +548,8 @@ exports.Create = async ( _OBJECT ) => {
         const packagePriceAfterDiscount = +(packagePriceBeforeDiscount - packageDiscountInPrice).toFixed(2);
 
         orderPrice += packagePriceAfterDiscount;
-        packages[item.packageId] = Item; 
+        packages[item.packageId] = Item;
+        packages[item.packageId].packagePrice = +Item.price; 
         packages[item.packageId].priceDiscounted = packagePriceAfterDiscount; 
         packages[item.packageId].discount = item.discount; 
         packages[item.packageId].quantity = item.quantity; 
@@ -570,6 +579,7 @@ exports.Create = async ( _OBJECT ) => {
 
             await db.OrderItem.create({
                 itemId: item.itemId,
+                itemPrice: items[item.itemId].itemPrice,
                 price: items[item.itemId].priceDiscounted,
                 quantity: items[item.itemId].quantity,
                 discount: items[item.itemId].discount,
@@ -583,6 +593,7 @@ exports.Create = async ( _OBJECT ) => {
 
             await db.OrderPackage.create({
                 packageId: item.packageId,
+                packagePrice: packages[item.packageId].packagePrice,
                 price: packages[item.packageId].priceDiscounted,
                 quantity: packages[item.packageId].quantity,
                 discount: packages[item.packageId].discount,

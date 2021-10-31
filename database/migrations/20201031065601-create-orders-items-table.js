@@ -18,8 +18,12 @@ module.exports = {
       type: Sequelize.INTEGER(11),
       allowNull: false,
     },
+    itemPrice : {
+      type: Sequelize.FLOAT,
+      allowNull: false,
+    },
     price:{
-      type: Sequelize.INTEGER(11),
+      type: Sequelize.FLOAT,
       allowNull: false,
     },
     discount: {
