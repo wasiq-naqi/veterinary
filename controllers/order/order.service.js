@@ -1,5 +1,6 @@
 /* eslint-disable no-prototype-builtins */
 var db = require('../../database/models');
+const { Op } = require('sequelize');
 const { Pagination } = require('../../functions');
 const { Roles } = require('../../utils/permissions');
 // const moment = require('moment-timezone');
@@ -157,7 +158,7 @@ exports.getAllUsers = async function ( object ) {
             model: db.Treatment, // will create a left join
             paranoid: false, 
             required: false,
-            separate: true,
+            // separate: true,
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
             include: [
                 {
@@ -660,7 +661,7 @@ exports.Create = async ( _OBJECT ) => {
     
 }
 
-exports.Update = async (_OBJECT, _ID, condition = {}) => {
+exports.UpdateDeprecated = async (_OBJECT, _ID, condition = {}) => {
 
     let OrderInstance = null, orderPrice = 0;
     let items = {};
@@ -758,7 +759,7 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
 
     if( _OBJECT.assignTo ){
 
-        User = await db.User.findOne({
+        const User = await db.User.findOne({
             where: {
                 id: _OBJECT.assignTo,
                 live: true
@@ -823,6 +824,7 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
 
         orderPrice += ( +Item.price * quantityDifference );
         items[item.itemId] = Item;
+        items[item.itemId].itemPrice = +Item.price;
         items[item.itemId].quantity = item.quantity;
 
         if( !present ) itemsToAdd.push(item.itemId);
@@ -860,6 +862,7 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
 
         orderPrice += ( +Item.price * quantityDifference ) ;
         packages[item.packageId] = Item;
+        packages[item.packageId].packagePrice = +Item.price; 
         packages[item.packageId].quantity = item.quantity;
 
         if( !present ) packagesToAdd.push(item.packageId);
@@ -885,6 +888,7 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
             await db.OrderItem.create({
                 itemId: item,
                 price: items[item].price,
+                itemPrice: items[item].itemPrice,
                 quantity: items[item].quantity,
                 orderId: _ID,
                 createdBy: _OBJECT.createdBy,
@@ -906,6 +910,7 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
             await db.OrderPackage.create({
                 packageId: item,
                 price: packages[item].price,
+                packagePrice: items[item].packagePrice,
                 quantity: packages[item].quantity,
                 orderId: _ID,
                 createdBy: _OBJECT.createdBy,
@@ -990,6 +995,121 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
 
         console.log(Excp);
 
+        let error = new Error("");
+        error.status = 500;
+        return {
+            DB_error: error
+        };
+
+    }
+
+}
+
+exports.Update = async (_OBJECT, _ID, condition = {}) => {
+
+    let where = {
+        id: _ID,
+        live: true
+    }
+    
+    let OrderInstance = await db.Order.findOne({ where });
+    const OrderInstancePlain = getPlain( OrderInstance );
+
+    if(!OrderInstance){
+
+        let error = new Error(`Order does not exists having id '${_ID}'`);
+        error.status = 400;
+        return {
+            DB_error: error
+        }; 
+
+    }
+    
+    let transaction = await db.sequelize.transaction();
+
+    try{
+
+        let newPrice = 0;
+
+        let itemsToFetch = _OBJECT['items'].map( item => +item?.itemId );
+        let packagesToFetch = _OBJECT['packages'].map( item => +item?.packageId );
+
+        const items = await db.Item.findAll({ 
+            attributes:['id', 'price'],
+            where:{ 
+                id: { [Op.in]: itemsToFetch }, 
+                live:true 
+            }
+        });
+        const itemsPlain = getPlain(items);
+
+        const packages = await db.Package.findAll({ 
+            attributes:['id', 'price'], 
+            where:{
+                id: { [Op.in]: packagesToFetch },
+                live:true 
+            }
+        });
+        const packagesPlain = getPlain(packages);
+
+        // insert items to database
+        for( let item of itemsPlain ){
+
+            const itemId = item.id;
+            const userItem = _OBJECT['items'].find( e => e.itemId = itemId );
+
+            const totalItemPrice = +getDiscountedPrice({ price:item.price, quantity:userItem.quantity, discount:userItem.discount });
+            newPrice = newPrice + totalItemPrice;
+
+            // insert to database
+            await db.OrderItem.create({
+                itemId,
+                price: totalItemPrice,
+                itemPrice: item.price,
+                quantity: userItem.quantity,
+                discount: userItem.discount,
+                orderId: _ID,
+                createdBy: _OBJECT.createdBy,
+            }, { transaction });
+
+        }
+
+        // insert packages to database
+        for( let package of packagesPlain ){
+
+            const packageId = package.id;
+            const userPackage = _OBJECT['items'].find( e => e.packageId = packageId );
+
+            const totalItemPrice = +getDiscountedPrice({ price:package.price, quantity:userPackage.quantity, discount:userPackage.discount });
+            newPrice = newPrice + totalItemPrice;
+
+            // insert to database
+            await db.OrderPackage.create({
+                packageId,
+                price: totalItemPrice,
+                packagePrice: package.price,
+                quantity: userPackage.quantity,
+                discount: userPackage.discount,
+                orderId: _ID,
+                createdBy: _OBJECT.createdBy,
+            }, { transaction });
+            
+        }
+
+        const UpdatedPrice = OrderInstancePlain.price + newPrice;
+        await OrderInstance.update({ price:UpdatedPrice }, { transaction });
+
+        // Commit transaction
+        await transaction.commit();
+        return OrderInstance;
+
+
+    }
+    catch( Excp ){
+
+        await transaction.rollback();
+
+        console.log({ Excp });
         let error = new Error("");
         error.status = 500;
         return {
@@ -1649,5 +1769,23 @@ exports.getOrdersByPet = async function ( _PET, _USER, _DATE, _APPOINTMENT, _CHE
     return {
         DB_value: result
     };
+
+}
+
+function getPlain( object ){
+
+    if( Array.isArray(object) ){
+        return object.map( el => el.get({ plain:true }) );
+    }
+    else {
+        return object ? object.get({ plain:true }) : null;
+    }
+
+}
+
+function getDiscountedPrice({ price=0, quantity=1, discount=0 }){
+
+    const priceAfterDiscount = price - ( price * discount ) / 100;
+    return priceAfterDiscount * quantity;
 
 }

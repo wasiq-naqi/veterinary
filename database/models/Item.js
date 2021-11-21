@@ -21,7 +21,7 @@ module.exports = (sequelize, Datatypes) => {
         defaultValue: true,
       },
       price: {
-        type: Datatypes.INTEGER(11),
+        type: Datatypes.FLOAT,
         allowNull: false
       },
       petTypeId : {

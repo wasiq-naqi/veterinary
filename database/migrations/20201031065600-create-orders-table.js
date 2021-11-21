@@ -13,6 +13,7 @@ module.exports = {
     patientId:{
       type: Sequelize.INTEGER(11),
       allowNull: false,
+      references: { model: 'patients', key: 'id' }
     },
     description : {
       type: Sequelize.STRING(500),
@@ -37,10 +38,12 @@ module.exports = {
     assignTo: {
       type: Sequelize.INTEGER(11),
       allowNull: true,
+      references: { model: 'users', key: 'id' }
     },
     createdBy: {
       type: Sequelize.INTEGER(11),
       allowNull: true,
+      references: { model: 'users', key: 'id' }
     },
     createdAt: {
       type: Sequelize.DATE,

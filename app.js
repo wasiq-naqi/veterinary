@@ -5,13 +5,12 @@ const { Errors } = require('./functions');
 const { HandleNullString } = require('./middlewares/index');
 const app = express();
 const config = require('./config')();
+const morgan = require('morgan');
 
 // Initializing Middlewares
 app.use(cors());
 app.use(express.json());
-
-// Middleware for adding delaying
-// app.use(function(req,res,next){setTimeout(next,3000)});
+app.use( morgan('tiny') );
 
 app.use('/public', express.static( path.join( __dirname, './public') ));
 app.use('/', express.static( path.join( __dirname, '../app') ));

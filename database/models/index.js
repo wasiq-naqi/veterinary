@@ -15,7 +15,7 @@ const db = {};
 const sequelize = new Sequelize(config.DB.DATABASE, config.DB.USER, config.DB.PASSWORD, { 
   host: config.DB.HOST, 
   dialect: config.DB.DIALECT,
-  logging: false,
+  logging: console.log,
   // timezone: '+04:00', //fro writing into database
   dialectOptions: {
     // useUTC: false, //for reading from database

@@ -13,10 +13,12 @@ module.exports = {
     orderId:{
       type: Sequelize.INTEGER(11),
       allowNull: false,
+      references: { model: 'orders', key: 'id' }
     },
     packageId : {
       type: Sequelize.INTEGER(11),
       allowNull: false,
+      references: { model: 'packages', key: 'id' }
     },
     packagePrice : {
       type: Sequelize.FLOAT,

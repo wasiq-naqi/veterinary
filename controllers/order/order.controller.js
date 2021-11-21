@@ -27,6 +27,21 @@ const Schema = Joi.object({
     
 });
 
+const SchemaUpdate = Joi.object({
+
+    items: Joi.array().required().items( Joi.object({
+        itemId: Joi.number().required(),
+        quantity: Joi.number().min(1).required(),
+        discount: Joi.number().min(0).max(100).required(),
+    }) ),
+    packages: Joi.array().required().items( Joi.object({
+        packageId: Joi.number().required(),
+        quantity: Joi.number().min(1).required(),
+        discount: Joi.number().min(0).max(100).required(),
+    }) ),
+    
+});
+
 let SchemaStatus = Joi.object({
     status: Joi.string().required().valid('placed', 'confirmed')
 });
@@ -119,11 +134,7 @@ exports.Update = async (req, res, next) => {
         return Errors(res, error);
     }
 
-    let schema = Schema.keys({
-        patientId: Joi.number().required(),
-    });
-
-    let {error, value} = schema.validate(req.body);
+    let {error, value} = SchemaUpdate.validate(req.body);
 
     if(error){
 
