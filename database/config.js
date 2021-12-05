@@ -5,7 +5,7 @@ module.exports = {
     username: config.DB.USER,
     password: config.DB.PASSWORD,
     database: config.DB.DATABASE,
-    host: config.env.DB_HOST,
+    host: config.DB_HOST,
     port: config.DB.PORT,
     dialect: config.DB.DIALECT,
     "operatorsAliases": 0
