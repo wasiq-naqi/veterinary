@@ -9,7 +9,7 @@ currentDir = currentDir.join(path.sep);
 dotenv.config({ path: currentDir + path.sep + '.env' });
 
 // IMPORTING DATABASE
-const DB = require('../models/index');
+const DB = require('../database/models/index');
 
 // Actions
 const { GetAll, GetSingle, Create, Update, Delete} = require('./permissions').Actions;
