@@ -21,6 +21,6 @@ router.route('/all/active')
 .get(AuthenticatePermission(Resource, Actions['GetAll']), GetAllActive)       // GET Lab All Active
 
 router.route('/:patientId/visit')
-    .get( AuthenticatePermission(Resource, Actions['Create']), addVisit )
+    .post( AuthenticatePermission(Resource, Actions['Create']), addVisit )
 
 module.exports = router;
