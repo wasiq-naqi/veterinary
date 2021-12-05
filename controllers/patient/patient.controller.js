@@ -170,3 +170,24 @@ exports.Delete = async (req, res) => {
     return res.send(DB_value);
 
 }
+
+exports.addVisit = async (req, res) => {
+
+    const { patientId } = req.params;
+
+    const body = { patientId };
+    body.createdBy = req.token.id;
+    body.updatedBy = req.token.id;
+
+    let { DB_error, DB_value } = await PatientService.addVisit({ body });
+
+    if(DB_error){
+
+        return Errors(res, DB_error);
+
+    }
+    
+
+    return res.status(201).send(DB_value);
+
+}

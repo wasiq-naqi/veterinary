@@ -1,3 +1,4 @@
+const { date } = require('@hapi/joi');
 var db = require('../../database/models');
 const { Pagination } = require('../../functions');
 
@@ -291,4 +292,25 @@ exports.Delete = async ( _ID ) => {
         DB_value: result
     };
 
+}
+
+exports.addVisit = async ({ body }) => {
+
+    const { patientId, createdBy, updatedBy } = body;
+    const date = new Date();
+
+    let instance = await db.Visit.findOne({ date, patientId });
+    
+    if(!instance){
+        instance = await db.Visit.create({ date, patientId, createdBy });
+    }
+    else{
+        instance = await instance.update({ date, patientId, updatedBy });
+    }
+
+    return {
+        DB_value: instance
+    };
+    
+    
 }
