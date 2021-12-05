@@ -5,6 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
+    "migrate": "npx sequelize db:migrate",
     "dev": "nodemon app.js",
     "app:reset": "sequelize db:migrate:undo:all && sequelize db:migrate --debug && sequelize db:seed:all --debug && node ./utils/assignPermissionsToRoles",
     "app:reset:permissions": "node ./utils/assignPermissionsToRoles",
