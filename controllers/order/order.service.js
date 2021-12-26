@@ -6,7 +6,7 @@ const { Roles } = require('../../utils/permissions');
 // const moment = require('moment-timezone');
 
 // exports.getAllUsers = async function ( _PAGE, _LIMIT, _USER, _SEARCH, _DATE, _APPOINTMENT, _CHECKUP ) {
-exports.getAllUsers = async function ( object ) {
+exports.getAllUsersOld = async function ( object ) {
     
     let {
         pageNo: _PAGE,
@@ -268,6 +268,293 @@ exports.getAllUsers = async function ( object ) {
     return {
         DB_value: result
     };
+}
+
+exports.getAllUsers = async function ( object ) {
+    
+    let {
+        pageNo: _PAGE,
+        pageSize: _LIMIT,
+        user: _USER,
+        search: _SEARCH,
+        // date: _DATE,
+        fromDate,
+        toDate,
+        assignTo,
+        appointment: _APPOINTMENT,
+        checkUp: _CHECKUP,
+    } = object;
+
+    let where = {
+        live: true,
+    }
+
+    if(_SEARCH){
+
+        let searchOf = `%${_SEARCH}%`;
+        where[db.Sequelize.Op.or]= [
+            { id: { [db.Sequelize.Op.like]: searchOf } },
+            // { patientEmiratesId: { [db.Sequelize.Op.like]: searchOf } },
+            { description: { [db.Sequelize.Op.like]: searchOf } },
+            { appointment: { [db.Sequelize.Op.like]: searchOf } },
+            { checkUpPrice: { [db.Sequelize.Op.like]: searchOf } },
+            { price: { [db.Sequelize.Op.like]: searchOf } },
+
+            { name: db.Sequelize.where(db.Sequelize.col('Patient.name'), { [db.Sequelize.Op.like]: searchOf  }) },
+            { name: db.Sequelize.where(db.Sequelize.col('Patient.gender'), { [db.Sequelize.Op.like]: searchOf  }) },
+            { name: db.Sequelize.where(db.Sequelize.col('Patient.contact'), { [db.Sequelize.Op.like]: searchOf  }) },
+            { name: db.Sequelize.where(db.Sequelize.col('Patient.emiratesId'), { [db.Sequelize.Op.like]: searchOf  }) },
+            { name: db.Sequelize.where(db.Sequelize.col('Patient.address'), { [db.Sequelize.Op.like]: searchOf  }) },
+
+            // { name: db.Sequelize.where(db.Sequelize.col('Service.name'), { [db.Sequelize.Op.like]: searchOf  }) },
+            // { name: db.Sequelize.where(db.Sequelize.col('Service.displayName'), { [db.Sequelize.Op.like]: searchOf  }) },
+        ]
+
+    }
+
+    if( fromDate ){
+
+        let hasProperty = Object.prototype.hasOwnProperty.call(where, db.Sequelize.Op.and);
+        if( !hasProperty ) where[db.Sequelize.Op.and] = [];
+
+        where[db.Sequelize.Op.and].push( 
+            db.Sequelize.where(
+                db.Sequelize.fn('date', db.Sequelize.col('Order.createdAt')), '>=', fromDate) 
+        );
+
+    }
+
+    if( toDate ){
+
+        
+        // let momentDate = moment().tz(toDate, 'Asia/Dubai' ).format();
+
+        // let momentDate = moment( '2021-04-30' ).format();
+        // let date = new Date( '2021-04-30' );
+
+        // let format = 'YYYY/MM/DD HH:mm:ss ZZ';
+        // let test = moment(date, format);
+        // console.log('test', test);
+
+        // console.log( date.toString() );
+        // console.log( momentDate );
+
+        let hasProperty = Object.prototype.hasOwnProperty.call(where, db.Sequelize.Op.and);
+        if( !hasProperty ) where[db.Sequelize.Op.and] = [];
+
+        where[db.Sequelize.Op.and].push( 
+            db.Sequelize.where(
+                db.Sequelize.fn('date', db.Sequelize.col('Order.createdAt')), '<=', toDate) 
+        );
+
+
+    }
+
+    if(_APPOINTMENT){
+
+        let searchOf = `${_APPOINTMENT}`;
+        let hasProperty = Object.prototype.hasOwnProperty.call(where, db.Sequelize.Op.and);
+        if( !hasProperty ) where[db.Sequelize.Op.and] = [];
+
+        where[db.Sequelize.Op.and].push({ appointment: searchOf });
+        
+    }
+
+    if(assignTo){
+
+        let searchOf = `${assignTo}`;
+        let hasProperty = Object.prototype.hasOwnProperty.call(where, db.Sequelize.Op.and);
+        if( !hasProperty ) where[db.Sequelize.Op.and] = [];
+
+        where[db.Sequelize.Op.and].push({ assignTo: searchOf });
+        
+    }
+
+    let include = [
+        {
+            as: 'Patient',
+            model: db.Patient, // will create a left join
+            // attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            attributes: ['id', 'name', 'email', 'contact'],
+        },
+        // {
+        //     as: 'AssignTo',
+        //     model: db.User, // will create a left join
+        //     // attributes: { exclude: ['password', 'createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        //     attributes: ['id', 'name'],
+        // },
+        // {
+        //     as: 'Items',
+        //     model: db.OrderItem, // will create a left join
+        //     paranoid: false, 
+        //     required: false,
+        //     separate: true,
+        //     attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        //     include: {
+        //         as: 'Item',
+        //         model: db.Item,
+        //         attributes: ['name', 'description', 'active', 'price', 'petTypeId', 'serviceId'],
+        //         include: {
+        //             model: db.Service,
+        //             as: 'Service',
+        //             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        //         },
+        //     }
+        // },
+        // {
+        //     as: 'Packages',
+        //     model: db.OrderPackage, // will create a left join
+        //     paranoid: false, 
+        //     required: false,
+        //     separate: true,
+        //     attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        //     include: {
+        //         as: 'Package',
+        //         model: db.Package,
+        //         attributes: ['name', 'description', 'active', 'price', 'petTypeId', 'serviceId'],
+        //         include: {
+        //             model: db.Service,
+        //             as: 'Service',
+        //             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        //         },
+        //     }
+        // },
+        // {
+        //     as: 'Treatments',
+        //     model: db.Treatment, // will create a left join
+        //     paranoid: false, 
+        //     required: false,
+        //     // separate: true,
+        //     attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        //     include: [
+        //         {
+        //             as: 'Pet',
+        //             model: db.Pet,
+        //             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        //         },
+        //         {
+        //             as: 'Doctor',
+        //             model: db.User,
+        //             attributes: ['id', 'image', 'name'],
+        //         },
+        //         {
+        //             as: 'Recomendations',
+        //             model: db.TreatmentRecomendationItem,
+        //             attributes: ["id", "itemId", "price"],
+        //             include: [
+        //                 {
+        //                     as: 'Item',
+        //                     model: db.Item,
+        //                     attributes: ["name", "description", "price"],
+        //                 }
+        //             ]
+        //         }
+        //     ],
+        //     where: {
+        //         live: true,
+        //     }
+        // },
+    ]
+
+    let association = {
+        include,
+        where,
+        subQuery: false,
+        distinct: true,
+        attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] }
+    };
+
+    // Restrict doctor from getting order details
+    if(_USER.roleId == Roles['Doctor']){
+        
+        association.include = [
+            {
+                as: 'Patient',
+                model: db.Patient, // will create a left join
+                // separate: true,
+                // attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                attributes: ['id', 'name', 'email', 'contact'],
+            },
+            {
+                as: 'AssignTo',
+                model: db.User, // will create a left join
+                // separate: true,
+                // attributes: { exclude: ['password', 'createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                attributes: ['id', 'name'],
+            },
+            // {
+            //     as: 'Treatments',
+            //     model: db.Treatment, // will create a left join
+            //     paranoid: false, 
+            //     required: false,
+            //     separate: true,
+            //     attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            //     include: [
+            //         {
+            //             as: 'Pet',
+            //             model: db.Pet,
+            //             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+            //         },
+            //         {
+            //             as: 'Doctor',
+            //             model: db.User,
+            //             attributes: ['id', 'image', 'name'],
+            //         },
+            //         {
+            //             as: 'Recomendations',
+            //             model: db.TreatmentRecomendationItem,
+            //             attributes: ["id", "itemId", "price"],
+            //             include: [
+            //                 {
+            //                     as: 'Item',
+            //                     model: db.Item,
+            //                     attributes: ["name", "description", "price"],
+            //                 }
+            //             ]
+            //         }
+            //     ],
+            //     where: {
+            //         live: true
+            //     }
+            // },
+        ]
+
+        // get only where appointments are true
+        association.where['appointment'] = true;
+        association.where['assignTo'] = _USER.userId;
+
+        // Remove Price
+        association['attributes'] = { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live', 'price'] };
+
+    }
+
+    // if( _CHECKUP == false || _CHECKUP == 'false' ) where['$Treatments.id$'] = null;
+    // if( _CHECKUP == true || _CHECKUP == 'true' ){
+    //     // let treatmentAssociationIndex = association.include.findIndex( e => e.as == 'Treatments' );
+    //     // association.include[treatmentAssociationIndex].required = true;
+
+    //     const treatmentAssociation = {
+    //         as: 'Treatments',
+    //         attributes: ['id'],
+    //         model: db.Treatment, // will create a left join
+    //         required: true,
+    //     };
+
+    //     association.include.push( treatmentAssociation );
+
+    // }
+
+    if( _CHECKUP == true || _CHECKUP == 'true' ) association.where['checkupDone'] = true;
+    if( _CHECKUP == false || _CHECKUP == 'false' ) association.where['checkupDone'] = false;
+
+    
+
+    let result = await Pagination(_PAGE, _LIMIT, db.Order, association);
+
+    return {
+        DB_value: result
+    };
+
 }
 
 exports.Get = async function ( _ID, _USER ) {

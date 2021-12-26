@@ -206,8 +206,11 @@ exports.Create = async (_OBJECT) => {
 
         }
 
+        await Order.update({ checkupDone:true });
+
     }
     catch( Excp ){
+        
         console.log( Excp );
 
         let error = new Error("");
@@ -487,6 +490,11 @@ exports.GetTreatmentsByPetsId = async function ( _OBJECT, _PAGE, _LIMIT ) {
                     as: 'Patient',
                     model: db.Patient, // will create a left join
                     attributes: { exclude: ['createdAt', 'createdBy', 'updatedBy', 'updatedAt', 'live'] },
+                },
+                {
+                    as: 'AssignTo',
+                    model: db.User, // will create a left join
+                    attributes: ['id', 'name'],
                 }
             ]
         },

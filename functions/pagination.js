@@ -9,8 +9,6 @@ module.exports = async function( pageNo, pageSize, model, include = {}){
 
     let offset = (page - 1) * size;
 
-    // console.log(`Page:${page}, Size:${size}, Offset: ${offset}`);
-
     // For including associations or any other  SEQUELIZE condition
     let conditions = {
         limit: size,

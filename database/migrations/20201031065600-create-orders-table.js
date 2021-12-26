@@ -27,6 +27,11 @@ module.exports = {
       type: Sequelize.FLOAT,
       allowNull: false,
     },
+    checkupDone:{
+      type: Sequelize.BOOLEAN,
+      allowNull: true,
+      default: false,
+    },
     price: {
       type: Sequelize.FLOAT,
       allowNull: false,

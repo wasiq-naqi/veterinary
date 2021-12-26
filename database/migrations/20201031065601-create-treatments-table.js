@@ -13,10 +13,12 @@ module.exports = {
     orderId:{
       type: Sequelize.INTEGER(11),
       allowNull: false,
+      references: { model: 'orders', key: 'id' }
     },
     petId:{
       type: Sequelize.INTEGER(11),
       allowNull: false,
+      references: { model: 'pets', key: 'id' }
     },
     statement:{
       type: Sequelize.STRING(),
@@ -37,6 +39,7 @@ module.exports = {
     createdBy: {
       type: Sequelize.INTEGER(11),
       allowNull: true,
+      references: { model: 'users', key: 'id' }
     },
     createdAt: {
       type: Sequelize.DATE,
@@ -46,6 +49,7 @@ module.exports = {
     updatedBy: {
       type: Sequelize.INTEGER(11),
       allowNull: true,
+      references: { model: 'users', key: 'id' }
     },
     updatedAt: {
       type: Sequelize.DATE,

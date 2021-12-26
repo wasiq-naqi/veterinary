@@ -61,10 +61,12 @@ module.exports = {
     patientId : {
       type: Sequelize.INTEGER(11),
       allowNull: false,
+      references: { model: 'patients', key: 'id' }
     },
     petTypeId : {
       type: Sequelize.INTEGER(11),
       allowNull: true,
+      references: { model: 'pet_types', key: 'id' }
     },
     createdBy: {
       type: Sequelize.INTEGER(11),

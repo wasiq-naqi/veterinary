@@ -23,6 +23,11 @@ module.exports = (sequelize, Datatypes) => {
         type: Datatypes.FLOAT(11),
         allowNull: false,
       },
+      checkupDone:{
+        type: Datatypes.BOOLEAN,
+        allowNull: true,
+        default: false,
+      },
       price: {
         type: Datatypes.FLOAT,
         allowNull: false,

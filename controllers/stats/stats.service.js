@@ -24,6 +24,7 @@ exports.getEntitiesCount = async function ( ) {
 exports.getDashboardReport = async function ({ fromDate, toDate}) {
 
     const todayDate = moment().utcOffset('+0400').format('YYYY-MM-DD');
+    
     fromDate = fromDate ?? todayDate;
     toDate = toDate ?? todayDate;
 

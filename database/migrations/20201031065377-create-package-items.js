@@ -12,11 +12,13 @@ module.exports = {
     },
     packageId : {
       type: Sequelize.INTEGER(11),
-      allowNull: false
+      allowNull: false,
+      references: { model: 'packages', key: 'id' }
     },
     itemId : {
       type: Sequelize.INTEGER(11),
-      allowNull: false
+      allowNull: false,
+      references: { model: 'items', key: 'id' }
     },
     price: {
       type: Sequelize.INTEGER(11),
