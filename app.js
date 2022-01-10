@@ -7,8 +7,6 @@ const app = express();
 const config = require('./config')();
 const morgan = require('morgan');
 
-console.log({ config })
-
 // Initializing Middlewares
 app.use(cors());
 app.use(express.json());
@@ -16,15 +14,20 @@ app.use( morgan('tiny') );
 
 app.use('/public', express.static( path.join( __dirname, './public') ));
 app.use('/', express.static( path.join( __dirname, '../app') ));
-// app.use('/', express.static( path.join( __dirname, './webapp') ));
+
 app.use(HandleNullString);
-// console.log(__dirname);
 
 // IMPORTING DATABASE
 require('./database/models');
 
 // Importing Routes
 const routes = require('./routes');
+
+app.use('/server/status', (req, res) => {
+    res.send({
+        config
+    });
+});
 
 // REGISTERING ROUTES
 app.use('/api', routes);
