@@ -12,6 +12,12 @@ app.use(cors());
 app.use(express.json());
 app.use( morgan('tiny') );
 
+app.get('/server/status', (req, res) => {
+    res.send({
+        config
+    });
+});
+
 app.use('/public', express.static( path.join( __dirname, './public') ));
 app.use('/', express.static( path.join( __dirname, '../app') ));
 
@@ -22,12 +28,6 @@ require('./database/models');
 
 // Importing Routes
 const routes = require('./routes');
-
-app.use('/server/status', (req, res) => {
-    res.send({
-        config
-    });
-});
 
 // REGISTERING ROUTES
 app.use('/api', routes);
