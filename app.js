@@ -7,6 +7,8 @@ const app = express();
 const config = require('./config')();
 const morgan = require('morgan');
 
+console.log({ config })
+
 // Initializing Middlewares
 app.use(cors());
 app.use(express.json());
