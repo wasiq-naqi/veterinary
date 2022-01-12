@@ -1,7 +1,7 @@
 module.exports = () => {
 
     const defaultEnviornment = 'development'
-    const environment = process.env.NODE_ENV || defaultEnviornment;
+    const environment = process.env.NODE_ENV?.toLowerCase() || defaultEnviornment;
 
     let configuration = {
         development: {
