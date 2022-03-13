@@ -1,6 +1,6 @@
 /* eslint-disable no-prototype-builtins */
 var db = require('../../database/models');
-const { Op } = require('sequelize');
+const { Op, literal } = require('sequelize');
 const { Pagination } = require('../../functions');
 const { Roles } = require('../../utils/permissions');
 // const moment = require('moment-timezone');
@@ -926,7 +926,7 @@ exports.Create = async ( _OBJECT ) => {
     try{
 
         // Updating patiesnt status
-        let updatePatient = await Patient.update({ noOrder: false });
+        let updatePatient = await Patient.update({ noOrder: false, lastVisitAt:literal('CURRENT_TIMESTAMP') });
 
     }
     catch( Excp ){
@@ -940,6 +940,8 @@ exports.Create = async ( _OBJECT ) => {
     _OBJECT.id = Order.dataValues.id;
     _OBJECT.price = orderPrice;
     _OBJECT.createdAt = Order.dataValues.createdAt;
+
+    // if(_OBJECT.patientId) await updatePatientLastVisit({ patientId:_OBJECT.patientId });
 
     return {
         DB_value: _OBJECT
@@ -1300,8 +1302,6 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
     }
     
     let OrderInstance = await db.Order.findOne({ where });
-    const OrderInstancePlain = getPlain( OrderInstance );
-
     if(!OrderInstance){
 
         let error = new Error(`Order does not exists having id '${_ID}'`);
@@ -1311,6 +1311,7 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
         }; 
 
     }
+    const OrderInstancePlain = getPlain( OrderInstance );
     
     let transaction = await db.sequelize.transaction();
 
@@ -1388,8 +1389,13 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
 
         // Commit transaction
         await transaction.commit();
-        return OrderInstance;
 
+        await updatePatientLastVisit({ patientId:OrderInstancePlain.patientId });
+        const UpdateOrderInstancePlain = getPlain(OrderInstance);
+
+        return {
+            DB_value: UpdateOrderInstancePlain
+        };
 
     }
     catch( Excp ){
@@ -1438,6 +1444,82 @@ exports.UpdateStatus = async (_OBJECT, _ID) => {
 
     // Adding Tooths to Orders
 
+    delete _OBJECT.updatedBy;
+
+    return {
+        DB_value: _OBJECT
+    };
+
+
+}
+
+exports.UpdateDoctor = async (_OBJECT, _ID) => {
+
+    let Order = null;
+    if( _ID ){
+
+        Order = await db.Order.findOne({
+            where: {
+                id: _ID,
+                live: true
+            }
+        });
+
+        if(!Order){
+
+            let error = new Error(`Order does not exists having id '${_ID}'`);
+            error.status = 400;
+            return {
+                DB_error: error
+            }; 
+
+        }
+
+    }
+
+    if( _OBJECT.assignTo ){
+
+        let User = await db.User.findOne({
+            where: {
+                id: _OBJECT.assignTo,
+                live: true
+            },
+            include: [{
+                model: db.Role, // will create a left join
+                attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt'] }
+            }]
+        });
+
+        if(!User){
+
+            let error = new Error(`Assigni does not exists having id '${_OBJECT.assignTo}'`);
+            error.status = 400;
+            return {
+                DB_error: error
+            }; 
+
+        }
+
+        let UserPlain = User.get({ plain: true });
+
+        if(UserPlain.Role.name.toLowerCase() != 'doctor'){
+
+            let error = new Error(`Assigni having id '${_OBJECT.assignTo}' is not a doctor`);
+            error.status = 400;
+            return {
+                DB_error: error
+            }; 
+
+        }
+
+    }
+
+    Order.assignTo = _OBJECT.assignTo;
+    Order.updatedBy = _OBJECT.updatedBy;
+
+    await Order.save();
+
+    // Adding Tooths to Orders
     delete _OBJECT.updatedBy;
 
     return {
@@ -2074,5 +2156,15 @@ function getDiscountedPrice({ price=0, quantity=1, discount=0 }){
 
     const priceAfterDiscount = price - ( price * discount ) / 100;
     return priceAfterDiscount * quantity;
+
+}
+
+async function updatePatientLastVisit({ patientId }){
+    
+    return db.Patient.update({ lastVisitAt:literal('CURRENT_TIMESTAMP') }, {
+        where:{
+            id:patientId
+        }
+    });
 
 }

@@ -16,6 +16,7 @@ const item = require('./item.route');
 const package = require('./package.route');
 const notification = require('./notification.route');
 const stat = require('./stats.route');
+const upload = require('./upload.route');
 
 // router.get('/', (req, res)=>{
 //     res.send('API Page');
@@ -36,5 +37,6 @@ router.use('/items', Authenticate, DecodeToken, item);
 router.use('/packages', Authenticate, DecodeToken, package);
 router.use('/notifications', Authenticate, DecodeToken, notification);
 router.use('/stats', Authenticate, DecodeToken, stat);
+router.use('/uploads', Authenticate, DecodeToken, upload);
 
 module.exports = router;

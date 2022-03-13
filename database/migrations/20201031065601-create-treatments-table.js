@@ -10,6 +10,10 @@ module.exports = {
       autoIncrement: true,
       primaryKey: true
     },
+    image: {
+      type: Sequelize.STRING(500),
+      allowNull: true,
+    },
     orderId:{
       type: Sequelize.INTEGER(11),
       allowNull: false,

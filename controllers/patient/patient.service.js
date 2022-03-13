@@ -31,7 +31,8 @@ exports.GetAll = async function ( _PAGE, _LIMIT, _SEARCH) {
     }
 
     let association = {
-        where: where
+        where: where,
+        order: [['lastVisitAt', 'DESC'], ['id', 'DESC']]
     }
 
     let result = await Pagination(_PAGE, _LIMIT, db.Patient, association);

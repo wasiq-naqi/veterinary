@@ -44,6 +44,11 @@ module.exports = (sequelize, Datatypes) => {
         allowNull: true,
         defaultValue: true,
       },
+      lastVisitAt: {
+        type: Datatypes.DATE,
+        defaultValue: Datatypes.NOW,
+        allowNull: false,
+      },
       createdBy: {
         type: Datatypes.INTEGER(11),
         allowNull: true,

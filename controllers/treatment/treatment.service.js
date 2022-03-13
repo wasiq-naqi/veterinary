@@ -71,6 +71,7 @@ exports.Get = async function ( _ID ) {
             attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
         }
     ];
+    
     let Treatment = await db.Treatment.findOne({
         attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
         include,
@@ -531,4 +532,32 @@ exports.GetTreatmentsByPetsId = async function ( _OBJECT, _PAGE, _LIMIT ) {
         DB_value: result
     };
     
+}
+
+exports.UpdateTreatmentFile = async (_OBJECT, _ID) => {
+
+    let Treatment = await db.Treatment.findOne({
+        attributes: ['id'],
+        where: {
+            id: _ID,
+            live: true
+        },
+    });
+
+    if(!Treatment){
+
+        let error = new Error("Treatment not found!");
+        error.status = 404;
+        return {
+            DB_error: error
+        };
+
+    }
+
+    const result = await Treatment.update({ image:_OBJECT.image });
+
+    return {
+        DB_value: result
+    };
+
 }

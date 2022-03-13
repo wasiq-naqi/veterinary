@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { GetAll, Get, Create, Update, Delete, UpdateStatus, GetOrdersByPatient, GetOrdersByPet} = require('../controllers/order/order.controller');
+const { GetAll, Get, Create, Update, Delete, UpdateStatus, UpdateDoctor, GetOrdersByPatient, GetOrdersByPet} = require('../controllers/order/order.controller');
 const { HandleNullString, AuthenticatePermission } = require('../middlewares');
 const { Resources, Actions } = require('../utils/permissions');
 
@@ -18,6 +18,9 @@ router.route('/:id')
 
 router.route('/:id/status')
 .put(AuthenticatePermission(Resources['Orders'], Actions['Update']), UpdateStatus)
+
+router.route('/:id/doctor')
+.put(AuthenticatePermission(Resources['Orders'], Actions['Update']), UpdateDoctor)
 
 router.route('/patient/:id')
 .get(AuthenticatePermission(Resources['Orders'], Actions['GetAll']), GetOrdersByPatient)

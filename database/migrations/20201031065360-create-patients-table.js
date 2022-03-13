@@ -47,6 +47,11 @@ module.exports = {
       allowNull: true,
       defaultValue: true,
     },
+    lastVisitAt: {
+      type: Sequelize.DATE,
+      defaultValue: Sequelize.NOW,
+      allowNull: false,
+    },
     createdBy: {
       type: Sequelize.INTEGER(11),
       allowNull: true,

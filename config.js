@@ -1,22 +1,22 @@
 module.exports = () => {
 
     const defaultEnviornment = 'development'
-    const environment = process.env.NODE_ENV?.toLowerCase() || defaultEnviornment;
+    const environment = process.env.NODE_ENV|| defaultEnviornment;
 
     let configuration = {
         development: {
             environment: 'development',
             APP:{
-                PORT: process.env.port || 8084,
+                PORT: process.env.port || 8080,
                 SERVER: process.env.server || 'linux'
             },
             DB:{
                 DIALECT: process.env.db_dialect || 'mysql',
                 HOST: process.env.db_host || 'localhost',
                 PORT: process.env.db_port || 3306,
-                USER: process.env.db_user || 'hollxzdw_admin_veterinary',
-                PASSWORD: process.env.db_password || 'admin_veterinary123',
-                DATABASE: process.env.db_database || 'hollxzdw_app1_veterinary_medical',
+                USER: process.env.db_user || 'root',
+                PASSWORD: process.env.db_password || '',
+                DATABASE: process.env.db_database || 'hollxzdw_veterinary_medical',
             },
             TOKEN:{
                 KEY: "THIS_IS_A_TOKEN_KEY",

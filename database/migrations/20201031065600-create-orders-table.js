@@ -29,7 +29,7 @@ module.exports = {
     },
     checkupDone:{
       type: Sequelize.BOOLEAN,
-      allowNull: true,
+      allowNull: false,
       default: false,
     },
     price: {

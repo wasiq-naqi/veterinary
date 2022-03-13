@@ -3,6 +3,7 @@ const TreatmentService = require('./treatment.service');
 const { Errors } = require('../../functions');
 
 const Schema = Joi.object({
+    image: Joi.string().allow('', null),
     orderId: Joi.number().required(),
     petId: Joi.number().required(),
     statement: Joi.string().required(),
@@ -14,6 +15,10 @@ const Schema = Joi.object({
 
 const SchemaTreatmentsByPetsId = Joi.object({
     petId: Joi.number().required()
+});
+
+const SchemaTreatmentFileUpload = Joi.object({
+    image: Joi.string().allow('', null)
 });
 
 exports.GetAll = async (req, res) => {
@@ -170,5 +175,38 @@ exports.TreatmentsByPetsId = async (req, res) => {
 
     if(DB_error) return Errors(res, DB_error); 
     return res.send(DB_value);
+
+}
+
+exports.uploadTreatmentFile = async (req, res) => {
+
+    if( isNaN(req.params.id) ){
+        let error = new Error('ID must be a number');
+        error.status = 400;
+        return Errors(res, error);
+    }
+
+    let {error, value} = SchemaTreatmentFileUpload.validate(req.body);
+
+    if(error){
+
+        let newError = {
+            message: error.details[0].message,
+            status: 400
+        }
+
+        return Errors(res, newError);
+
+    }
+
+    let { DB_error, DB_value } = await TreatmentService.UpdateTreatmentFile(value, req.params.id);
+
+    if(DB_error){
+
+        return Errors(res, DB_error);
+
+    }
+    
+    return res.status(201).send(DB_value);
 
 }
