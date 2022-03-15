@@ -592,6 +592,9 @@ exports.Get = async function ( _ID, _USER ) {
                     as: 'Service',
                     attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
                 },
+            },
+            where:{
+                live: true
             }
         },
         {
@@ -609,6 +612,9 @@ exports.Get = async function ( _ID, _USER ) {
                     as: 'Service',
                     attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
                 },
+            },
+            where:{
+                live: true
             }
         },
         {
@@ -1294,7 +1300,7 @@ exports.UpdateDeprecated = async (_OBJECT, _ID, condition = {}) => {
 
 }
 
-exports.Update = async (_OBJECT, _ID, condition = {}) => {
+exports.UpdateOld = async (_OBJECT, _ID, condition = {}) => {
 
     let where = {
         id: _ID,
@@ -1409,6 +1415,246 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
             DB_error: error
         };
 
+    }
+
+}
+
+exports.Update = async (_OBJECT, _ID, condition = {}) => {
+
+    let where = {
+        id: _ID,
+        live: true
+    }
+
+    const { items, packages } = _OBJECT;
+    
+    let OrderInstance = await db.Order.findOne({ where });
+    if(!OrderInstance){
+
+        let error = new Error(`Order does not exists having id '${_ID}'`);
+        error.status = 400;
+        return {
+            DB_error: error
+        }; 
+
+    }
+    const OrderInstancePlain = getPlain( OrderInstance );
+    
+    // Get existing items
+    const orderExistingItemsInstance = await db.OrderItem.findAll({
+        attributes:['id', 'itemId', 'itemPrice', 'price', 'discount', 'quantity'],
+        where:{
+            orderId: _ID,
+            live: true
+        } 
+    });
+    const orderExistingItems = getPlain(orderExistingItemsInstance);
+
+    // Get existing packages
+    const orderExistingPackagesInstance = await db.OrderPackage.findAll({
+        attributes:['id', 'packageId', 'packagePrice', 'price', 'discount', 'quantity'],
+        where:{
+            orderId: _ID,
+            live: true
+        } 
+    });
+    const orderExistingPackages = getPlain(orderExistingPackagesInstance);
+
+    //fetch new Items to add
+    const newItemsIds = items.reduce((previousValue, currentValue) => {
+        if(!currentValue.id) previousValue.push(currentValue.itemId);
+        return previousValue;
+    }, []);
+    let newItems = [];
+
+    if(newItemsIds){
+        const newItemsInstance = await db.Item.findAll({
+            where:{
+                id:{
+                    [Op.in]: newItemsIds
+                }
+            }
+        });
+        newItems = getPlain(newItemsInstance);
+    }
+
+    //fetch new Packages to add
+    const newPackagesId = packages.reduce((previousValue, currentValue) => {
+        if(!currentValue.id) previousValue.push(currentValue.packageId);
+        return previousValue;
+    }, []);
+    let newPackages = [];
+
+    if(newPackagesId){
+        const newPackagesInstance = await db.Package.findAll({
+            where:{
+                id:{
+                    [Op.in]: newPackagesId
+                }
+            }
+        });
+        newPackages = getPlain(newPackagesInstance);
+    }
+    
+    let updatedPrice = 0;
+
+    const itemsToRemove = [];
+    const itemsToUpdate = [];
+    const itemsToAdd = [];
+    let itemAlreadyAdded = 0;
+
+    const packagesToRemove = [];
+    const packagesToUpdate = [];
+    const packagesToAdd = [];
+    let packageAlreadyAdded = 0;
+
+    let transaction = await db.sequelize.transaction();
+
+    try{
+
+        // Handle items
+        for(let existingItem of orderExistingItems){
+
+            // add new items
+            if(!itemAlreadyAdded){
+                for(let item of items){
+                    if(!item.id){
+                        
+                        itemsToAdd.push(item);
+                        const dbItem = newItems.find(db => db.id == item.itemId);
+                        const body = {
+                            itemId: dbItem.id,
+                            itemPrice: dbItem.price,
+                            price: getDiscountedPrice({ price:dbItem.price, quantity:item.quantity, discount:item.discount }),
+                            quantity: item.quantity,
+                            discount: item.discount,
+                            orderId: _ID,
+                            createdBy: _OBJECT.updatedBy,
+                        };
+
+                        updatedPrice += +body.price;
+                        await db.OrderItem.create(body, { transaction });
+
+                    }
+                }
+            }
+            
+            const itemPresent = items.findIndex( item => item.id == existingItem.id );
+            const item = itemPresent != -1 ? items[itemPresent] : null;
+
+            // remove items
+            if(itemPresent == -1) {
+                itemsToRemove.push(existingItem.id);
+                // remove item query here
+                await db.OrderItem.update({ live:false }, { where: { id:existingItem.id }, transaction });
+            }
+
+            // items to update
+            if(itemPresent != -1 && (item?.quantity != existingItem.quantity || item?.discount != existingItem.discount) ){
+                item.itemPrice = existingItem.itemPrice;
+                itemsToUpdate.push(item);
+
+                // update item query here
+                const body = {
+                    discount: item?.discount,
+                    quantity: item?.quantity,
+                    price: getDiscountedPrice({ price:item.itemPrice, quantity: item?.quantity, discount: item?.discount })
+                }
+
+                updatedPrice += +body.price;
+                await db.OrderItem.update(body, { where: { id:item.id }, transaction });
+            }
+            else if(itemPresent != -1){
+                updatedPrice += +existingItem.price;
+            }
+            
+            itemAlreadyAdded = 1;
+
+        }
+
+        // Handle packages
+        for(let existingPackage of orderExistingPackages){
+
+            // add new packages
+            if(!packageAlreadyAdded){
+                for(let package of packages){
+                    if(!package.id){
+                        packagesToAdd.push(package);
+
+                        const dbPackage = newPackages.find(db => db.id == package.packageId);
+                        const body = {
+                            packageId: dbPackage.id,
+                            packagePrice: dbPackage.price,
+                            price: getDiscountedPrice({ price:dbPackage.price, quantity:package.quantity, discount:package.discount }),
+                            quantity: package.quantity,
+                            discount: package.discount,
+                            orderId: _ID,
+                            createdBy: _OBJECT.updatedBy,
+                        };
+
+                        updatedPrice += +body.price;
+                        await db.OrderPackage.create(body, { transaction });
+
+                    }
+                }
+            }
+            
+            const packagePresent = packages.findIndex( package => package.id == existingPackage.id );
+            const package = packagePresent != -1 ? packages[packagePresent] : null;
+
+            // remove packages
+            if(packagePresent == -1) {
+                packagesToRemove.push(existingPackage.id);
+                // remove package query here
+                await db.OrderPackage.update({ live:false }, { where: { id:existingPackage.id }, transaction });
+            }
+
+            // packages to update
+            if(packagePresent != -1 && (package?.quantity != existingPackage.quantity || package?.discount != existingPackage.discount) ){
+                package.packagePrice = existingPackage.packagePrice;
+                packagesToUpdate.push(package);
+
+                // update package query here
+                // update item query here
+                const body = {
+                    discount: package?.discount,
+                    quantity: package?.quantity,
+                    price: getDiscountedPrice({ price:package?.packagePrice, quantity: package?.quantity, discount: package?.discount })
+                }
+
+                updatedPrice += +body.price;
+                await db.OrderPackage.update(body, { where: { id:package.id }, transaction });
+
+            }
+            else if(packagePresent != -1){
+                updatedPrice += +existingPackage.price;
+            }
+            
+            packageAlreadyAdded = 1;
+
+        }
+
+        // add checkup price
+        updatedPrice += OrderInstancePlain.checkUpPrice ?? 0;
+
+        // Update order price
+        await OrderInstance.update({ price:updatedPrice }, { transaction });
+        OrderInstance.reload();
+
+        transaction.commit();
+
+        // Update last visit date
+        await updatePatientLastVisit({ patientId:OrderInstancePlain.patientId });
+
+    }
+    catch(Excp){
+        console.log(Excp);
+        transaction.rollback();
+    }
+
+
+    return {
+        DB_value: OrderInstance
     }
 
 }

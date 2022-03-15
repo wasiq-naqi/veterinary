@@ -30,11 +30,13 @@ const Schema = Joi.object({
 const SchemaUpdate = Joi.object({
 
     items: Joi.array().required().items( Joi.object({
+        id: Joi.number().min(1),
         itemId: Joi.number().required(),
         quantity: Joi.number().min(1).required(),
         discount: Joi.number().min(0).max(100).required(),
     }) ),
     packages: Joi.array().required().items( Joi.object({
+        id: Joi.number().min(1),
         packageId: Joi.number().required(),
         quantity: Joi.number().min(1).required(),
         discount: Joi.number().min(0).max(100).required(),
