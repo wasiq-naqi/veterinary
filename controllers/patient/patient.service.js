@@ -300,7 +300,7 @@ exports.addVisit = async ({ body }) => {
     const { patientId, createdBy, updatedBy } = body;
     const date = new Date();
 
-    let instance = await db.Visit.findOne({ date, patientId });
+    let instance = await db.Visit.findOne({ where:{ date, patientId } });
     
     if(!instance){
         instance = await db.Visit.create({ date, patientId, createdBy });
