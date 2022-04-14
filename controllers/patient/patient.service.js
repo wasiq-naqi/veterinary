@@ -32,6 +32,12 @@ exports.GetAll = async function ( _PAGE, _LIMIT, _SEARCH) {
 
     let association = {
         where: where,
+        include:[{
+            as: 'Pets',
+            model: db.Pet,
+            attributes:['id', 'name'],
+            required: false,
+        }],
         order: [['lastVisitAt', 'DESC'], ['id', 'DESC']]
     }
 
@@ -64,6 +70,12 @@ exports.Get = async function ( _ID ) {
 
     let Patient = await db.Patient.findOne({
         attributes: { exclude: ['createdBy', 'updatedBy', 'updatedAt', 'live'] },
+        include:[{
+            as: 'Pets',
+            model: db.Pet,
+            attributes:['id', 'name'],
+            required: false,
+        }],
         where: {
             id: _ID,
             live: true

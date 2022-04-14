@@ -11,6 +11,7 @@ const Schema = Joi.object({
     contact: Joi.string().required(),
     dob: Joi.date().iso().allow('', null),
     address: Joi.string().allow('', null),
+    fileNo: Joi.string().allow('', null),
 });
 
 exports.GetAll = async (req, res) => {

@@ -42,6 +42,10 @@ module.exports = {
       type: Sequelize.STRING(),
       allowNull: true,
     },
+    fileNo : {
+      type: Sequelize.STRING(),
+      allowNull: true,
+    },
     noOrder: {
       type: Sequelize.BOOLEAN(),
       allowNull: true,
