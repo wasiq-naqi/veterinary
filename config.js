@@ -15,7 +15,7 @@ module.exports = () => {
                 HOST: process.env.db_host || 'localhost',
                 PORT: process.env.db_port || 3306,
                 USER: process.env.db_user || 'root',
-                PASSWORD: process.env.db_password || '',
+                PASSWORD: process.env.db_password || 'root1234',
                 DATABASE: process.env.db_database || 'hollxzdw_veterinary_medical',
             },
             TOKEN:{

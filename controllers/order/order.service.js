@@ -1512,6 +1512,9 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
 
     try{
 
+        if(!orderExistingItems.length) orderExistingItems.push(null);
+        if(!orderExistingPackages.length) orderExistingPackages.push(null);
+
         // Handle items
         for(let existingItem of orderExistingItems){
 
@@ -1537,7 +1540,11 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
 
                     }
                 }
+
+                itemAlreadyAdded = 1;
             }
+
+            if(!existingItem) continue;
             
             const itemPresent = items.findIndex( item => item.id == existingItem.id );
             const item = itemPresent != -1 ? items[itemPresent] : null;
@@ -1567,8 +1574,6 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
             else if(itemPresent != -1){
                 updatedPrice += +existingItem.price;
             }
-            
-            itemAlreadyAdded = 1;
 
         }
 
@@ -1597,7 +1602,11 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
 
                     }
                 }
+
+                packageAlreadyAdded = 1;
             }
+
+            if(!existingPackage) continue;
             
             const packagePresent = packages.findIndex( package => package.id == existingPackage.id );
             const package = packagePresent != -1 ? packages[packagePresent] : null;
@@ -1629,8 +1638,6 @@ exports.Update = async (_OBJECT, _ID, condition = {}) => {
             else if(packagePresent != -1){
                 updatedPrice += +existingPackage.price;
             }
-            
-            packageAlreadyAdded = 1;
 
         }
 
