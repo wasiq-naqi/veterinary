@@ -1,7 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const dotenv = require('dotenv');
-dotenv.config();
+const config = require('../config')();
 
 module.exports = {
     generateHash: async ( string ) => {
@@ -29,20 +28,20 @@ module.exports = {
             labId: object.labId
         };
 
-        let config = {
+        let configuration = {
             subject: object.name,
-            issuer: process.env.TOKEN_ISSUER,
-            expiresIn: process.env.TOKEN_EXPIRY
+            issuer: config.TOKEN.ISSUER,
+            expiresIn: config.TOKEN.EXPIRY
         }
 
         return {
-            token: jwt.sign(payload, process.env.TOKEN_KEY, config),
+            token: jwt.sign(payload, config.TOKEN.KEY, configuration),
             timestamp: new Date()
         }
     },
     verifyToken: ( hash ) => {
 
-        return jwt.verify(hash, process.env.TOKEN_KEY);
+        return jwt.verify(hash, config.TOKEN.KEY);
         
     },
     decodeToken: ( token ) => {
